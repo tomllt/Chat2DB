@@ -100,4 +100,11 @@ export default {
   'dashboard.title.enterDemoMode': 'Entrar en modo de demostración',
   'dashboard.title.exitDemoMode': 'Salir del modo de demostración',
   'dashboard.share.linkCopied': 'Enlace para compartir el panel copiado al portapapeles',
+  'dashboard.chart.dataSourceType': 'Fuente de datos',
+  'dashboard.chart.dataSourceType.legacySql': 'Editor SQL',
+  'dashboard.chart.dataSourceType.savedQueryView': 'Vista de consulta guardada',
+  'dashboard.chart.savedQueryViewSelect.placeholder': 'Seleccione una vista de consulta guardada',
+  'queryDataset.title': 'Conjunto de datos de consulta',
+  'savedQueryView.title': 'Vista de consulta guardada',
+  'excelReportTemplate.title': 'Plantilla de informe Excel',
 };

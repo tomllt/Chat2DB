@@ -23,6 +23,7 @@
         <module>chat2db-community-jcef</module>
         <module>chat2db-community-plugins</module>
         <module>chat2db-community-spi</module>
+        <module>chat2db-community-query-excel</module>
     </modules>
 
     <dependencies>

@@ -1,6 +1,7 @@
 package ai.chat2db.community.storage;
 
 import ai.chat2db.community.domain.api.enums.operation.SqlOperationLogSourceEnum;
+import ai.chat2db.community.domain.api.enums.ChartDataSourceType;
 import ai.chat2db.community.domain.api.model.PageResponse;
 import ai.chat2db.community.domain.api.model.chart.Chart;
 import ai.chat2db.community.domain.api.model.chart.Dashboard;
@@ -8,6 +9,9 @@ import ai.chat2db.community.domain.api.model.request.db.DbDlExecuteRequest;
 import ai.chat2db.community.domain.api.model.request.operation.OpsSqlOperationLogListResultRequest;
 import ai.chat2db.community.domain.api.model.request.runtime.DbConnectionContextRequest;
 import ai.chat2db.community.domain.api.model.result.ExecuteResponse;
+import ai.chat2db.community.domain.api.model.result.Header;
+import ai.chat2db.community.domain.api.model.result.ResultCell;
+import ai.chat2db.community.domain.api.service.dashboard.IChartSavedQueryViewAdapter;
 import ai.chat2db.community.domain.api.service.dashboard.IDashboardService;
 import ai.chat2db.community.domain.api.service.db.IDbConnectionContextService;
 import ai.chat2db.community.domain.api.service.db.IDbDlTemplateService;
@@ -28,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @LocalPersistenceRuntimeOnly
@@ -38,13 +43,16 @@ public class LocalDashboardService implements IDashboardService {
     private final IDbConnectionContextService connectionContextService;
     private final IDbDlTemplateService dlTemplateService;
     private final IOpsSqlOperationLogService sqlOperationLogService;
+    private final IChartSavedQueryViewAdapter savedQueryViewAdapter;
 
     public LocalDashboardService(IDbConnectionContextService connectionContextService,
             IDbDlTemplateService dlTemplateService,
-            IOpsSqlOperationLogService sqlOperationLogService) {
+            IOpsSqlOperationLogService sqlOperationLogService,
+            IChartSavedQueryViewAdapter savedQueryViewAdapter) {
         this.connectionContextService = connectionContextService;
         this.dlTemplateService = dlTemplateService;
         this.sqlOperationLogService = sqlOperationLogService;
+        this.savedQueryViewAdapter = savedQueryViewAdapter;
     }
 
     @Override
@@ -101,14 +109,24 @@ public class LocalDashboardService implements IDashboardService {
             return null;
         }
         Chart response = JSON.parseObject(JSON.toJSONString(chart), Chart.class);
-        if (Boolean.TRUE.equals(refresh)) {
-            refreshChartMetaData(response);
+
+        String dataSourceType = chart.getDataSourceType();
+        if (ChartDataSourceType.SAVED_QUERY_VIEW.name().equals(dataSourceType)) {
+            // Mutual exclusion: cannot have both SAVED_QUERY_VIEW and LEGACY_SQL sources (§7.2)
+            validateChartSource(chart);
+            executeChartViaSavedQueryView(chart, response);
+        } else {
+            // LEGACY_SQL or unset — existing execution path
+            if (Boolean.TRUE.equals(refresh)) {
+                refreshChartMetaData(response);
+            }
         }
         return response;
     }
 
     @Override
     public Long createChart(Chart chart) {
+        validateChartSource(chart);
         Date now = new Date();
         chart.setGmtCreate(now);
         chart.setGmtModified(now);
@@ -120,6 +138,7 @@ public class LocalDashboardService implements IDashboardService {
 
     @Override
     public void updateChart(Chart chart) {
+        validateChartSource(chart);
         chart.setGmtModified(new Date());
         if (StringUtils.isBlank(chart.getName())) {
             chart.setName(resolveChartTitle(chart));
@@ -130,6 +149,22 @@ public class LocalDashboardService implements IDashboardService {
     @Override
     public void deleteChart(Long id) {
         ChartStorage.INSTANCE.delete(id);
+    }
+
+    /**
+     * §7.2 mutual exclusion: SAVED_QUERY_VIEW charts must not also carry a ddl.
+     */
+    private static void validateChartSource(Chart chart) {
+        if (chart == null) {
+            return;
+        }
+        String dataSourceType = chart.getDataSourceType();
+        if (ChartDataSourceType.SAVED_QUERY_VIEW.name().equals(dataSourceType)) {
+            if (chart.getSavedQueryViewId() != null && StringUtils.isNotBlank(chart.getDdl())) {
+                throw new BusinessException("common.businessError",
+                        new Object[]{"Chart cannot have both LEGACY_SQL and SAVED_QUERY_VIEW sources"});
+            }
+        }
     }
 
     private List<Dashboard> filterDashboards(List<Dashboard> dashboards, String searchKey) {
@@ -190,6 +225,36 @@ public class LocalDashboardService implements IDashboardService {
         } finally {
             connectionContextService.clear();
         }
+    }
+
+    /**
+     * Executes a chart whose data source is a saved query view and attaches the
+     * result as metadata on the response chart.
+     */
+    private void executeChartViaSavedQueryView(Chart chart, Chart response) {
+        Long viewId = chart.getSavedQueryViewId();
+        if (viewId == null) {
+            return;
+        }
+        IChartSavedQueryViewAdapter.ChartQueryResult queryResult = savedQueryViewAdapter.executeQuery(viewId);
+        if (queryResult == null) {
+            return;
+        }
+        Map<String, Object> metaData = new LinkedHashMap<>();
+        if (queryResult.columns() != null) {
+            List<Header> headerList = queryResult.columns().stream()
+                    .map(name -> {
+                        Header h = new Header();
+                        h.setName(name);
+                        return h;
+                    })
+                    .collect(Collectors.toList());
+            metaData.put("headerList", headerList);
+        }
+        if (queryResult.rows() != null) {
+            metaData.put("dataList", queryResult.rows());
+        }
+        response.setMetaData(metaData);
     }
 
     private void attachMetaData(Chart chart, List<ExecuteResponse> results) {

@@ -31,6 +31,26 @@ for (const page of ['src/pages/main/CommunityMainPage.tsx', 'src/pages/main/inde
   );
 }
 
+const communityMainPage = readFileSync('src/pages/main/CommunityMainPage.tsx', 'utf8');
+for (const coreKey of CORE_MAIN_NAV_KEYS) {
+  assert.match(
+    communityMainPage,
+    new RegExp(`key: '${coreKey}'|${coreKey}: \\{`),
+    `Community should retain its ${coreKey} navigation entry`,
+  );
+}
+for (const feature of [
+  ['query-dataset', 'QueryDatasetPage'],
+  ['saved-query-view', 'SavedQueryViewPage'],
+  ['excel-report-template', 'ExcelReportTemplatePage'],
+] as const) {
+  assert.match(
+    communityMainPage,
+    new RegExp(`key: '${feature[0]}'[\\s\\S]*component: <${feature[1]} />`),
+    `Community should register the ${feature[0]} page in its navigation`,
+  );
+}
+
 const commercialMainPage = readFileSync('src/pages/main/index.tsx', 'utf8');
 assert.match(commercialMainPage, /icon: 'icon-a-xunwen1'/, 'Team should keep its existing iconfont icon');
 for (const retiredIconCode of ['icon-chat-alt-21', 'icon-gongxiang-', 'icon-chart-square-bar']) {

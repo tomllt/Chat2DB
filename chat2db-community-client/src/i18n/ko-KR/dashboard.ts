@@ -100,4 +100,11 @@ export default {
   'dashboard.title.enterDemoMode': '데모 모드 시작',
   'dashboard.title.exitDemoMode': '데모 모드 종료',
   'dashboard.share.linkCopied': '대시보드 공유 링크를 클립보드에 복사했습니다',
+  'dashboard.chart.dataSourceType': '데이터 소스',
+  'dashboard.chart.dataSourceType.legacySql': 'SQL 편집기',
+  'dashboard.chart.dataSourceType.savedQueryView': '저장된 쿼리 뷰',
+  'dashboard.chart.savedQueryViewSelect.placeholder': '저장된 쿼리 뷰 선택',
+  'queryDataset.title': '쿼리 데이터셋',
+  'savedQueryView.title': '저장된 쿼리 뷰',
+  'excelReportTemplate.title': 'Excel 보고서 템플릿',
 };

@@ -49,6 +49,23 @@
             <groupId>ai.chat2db</groupId>
             <artifactId>chat2db-community-storage</artifactId>
         </dependency>
+        <!-- Query-Excel (aggregation/reporting) services and controllers. -->
+        <dependency>
+            <groupId>ai.chat2db</groupId>
+            <artifactId>query-excel-domain-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ai.chat2db</groupId>
+            <artifactId>query-excel-domain-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ai.chat2db</groupId>
+            <artifactId>query-excel-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ai.chat2db</groupId>
+            <artifactId>query-excel-web</artifactId>
+        </dependency>
         <dependency>
             <groupId>ai.chat2db</groupId>
             <artifactId>chat2db-community-mysql</artifactId>

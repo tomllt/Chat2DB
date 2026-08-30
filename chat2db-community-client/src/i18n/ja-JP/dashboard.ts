@@ -100,4 +100,11 @@ export default {
   'dashboard.title.enterDemoMode': 'デモモードに入る',
   'dashboard.title.exitDemoMode': 'デモモードを終了する',
   'dashboard.share.linkCopied': 'ダッシュボードの共有リンクがクリップボードにコピーされました',
+  'dashboard.chart.dataSourceType': 'データソース',
+  'dashboard.chart.dataSourceType.legacySql': 'SQLエディタ',
+  'dashboard.chart.dataSourceType.savedQueryView': '保存済みクエリビュー',
+  'dashboard.chart.savedQueryViewSelect.placeholder': '保存済みクエリビューを選択',
+  'queryDataset.title': 'クエリデータセット',
+  'savedQueryView.title': '保存済みクエリビュー',
+  'excelReportTemplate.title': 'Excelレポートテンプレート',
 };

@@ -48,6 +48,25 @@ assert.equal(
   undefined,
   'persisted entries that are not currently available are ignored',
 );
+for (const featurePage of ['query-dataset', 'saved-query-view', 'excel-report-template']) {
+  assert.equal(
+    readPersistedMainPageActiveTab(`{"state":{"mainPageActiveTab":"${featurePage}"}}`, [
+      'stream',
+      'workspace',
+      'dashboard',
+      'query-dataset',
+      'saved-query-view',
+      'excel-report-template',
+    ]),
+    featurePage,
+    `${featurePage} should be restorable when registered in Community navigation`,
+  );
+}
+assert.equal(
+  readPersistedMainPageActiveTab('{"state":{"mainPageActiveTab":"query-dataset/extra"}}'),
+  undefined,
+  'malformed navigation keys should not be restored as a main page',
+);
 assert.deepEqual(
   resolveDesktopInitialMainPage('/', 'dashboard'),
   { page: 'dashboard', pathName: '/dashboard' },

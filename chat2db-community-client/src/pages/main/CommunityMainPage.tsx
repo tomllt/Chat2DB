@@ -19,6 +19,9 @@ import CommunityTitleBarActions from './components/CommunityTitleBarActions';
 import StreamSidebar from './components/StreamSidebar';
 
 import Dashboard from './dashboard';
+import QueryDatasetPage from './query-dataset';
+import SavedQueryViewPage from './saved-query-view';
+import ExcelReportTemplatePage from './excel-report-template';
 import { createCoreMainNavItems } from './navigationItems';
 import Workspace from './workspace';
 import Stream from '../stream';
@@ -47,12 +50,34 @@ function CommunityMainPage() {
   const [navConfig, setNavConfig] = useState<INavItem[]>([]);
 
   const initNavConfig: INavItem[] = useMemo(
-    () =>
-      createCoreMainNavItems({
+    () => [
+      ...createCoreMainNavItems({
         stream: { component: <Stream />, name: i18n('stream.nav.title') },
         workspace: { component: <Workspace />, name: i18n('workspace.title') },
         dashboard: { component: <Dashboard />, name: i18n('dashboard.title') },
       }),
+      {
+        key: 'query-dataset',
+        icon: 'icon-database',
+        isLoad: false,
+        component: <QueryDatasetPage />,
+        name: i18n('queryDataset.title'),
+      },
+      {
+        key: 'saved-query-view',
+        icon: 'icon-table',
+        isLoad: false,
+        component: <SavedQueryViewPage />,
+        name: i18n('savedQueryView.title'),
+      },
+      {
+        key: 'excel-report-template',
+        icon: 'icon-file-excel',
+        isLoad: false,
+        component: <ExcelReportTemplatePage />,
+        name: i18n('excelReportTemplate.title'),
+      },
+    ],
     [],
   );
 

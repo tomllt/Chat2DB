@@ -31,6 +31,9 @@ import { createCoreMainNavItems } from './navigationItems';
 import Workspace from './workspace';
 // import KnowledgeManagement from './knowledgeManagement';
 import Stream from '../stream';
+import QueryDatasetPage from './query-dataset';
+import SavedQueryViewPage from './saved-query-view';
+import ExcelReportTemplatePage from './excel-report-template';
 // import Plugin from './plugin';
 
 import { useStyles } from './style';
@@ -85,6 +88,27 @@ function MainPage() {
         isLoad: false,
         component: <Organization />,
         name: i18n('team.title'),
+      },
+      {
+        key: 'query-dataset',
+        icon: 'icon-database',
+        isLoad: false,
+        component: <QueryDatasetPage />,
+        name: i18n('queryDataset.title'),
+      },
+      {
+        key: 'saved-query-view',
+        icon: 'icon-table',
+        isLoad: false,
+        component: <SavedQueryViewPage />,
+        name: i18n('savedQueryView.title'),
+      },
+      {
+        key: 'excel-report-template',
+        icon: 'icon-file-excel',
+        isLoad: false,
+        component: <ExcelReportTemplatePage />,
+        name: i18n('excelReportTemplate.title'),
       },
     ];
   }, []);

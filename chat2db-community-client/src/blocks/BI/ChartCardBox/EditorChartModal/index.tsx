@@ -1,4 +1,4 @@
-import { useState, useImperativeHandle, ForwardedRef, forwardRef, useMemo, useRef } from 'react';
+import { useState, useImperativeHandle, ForwardedRef, forwardRef, useMemo, useRef, useCallback } from 'react';
 import { useStyles } from './style';
 import EditorChart from '../EditorChart';
 import EditorChartSql, { EditorChartSqlRef } from '../EditorChartSql';
@@ -39,6 +39,15 @@ export default forwardRef((props: IProps, ref: ForwardedRef<EditChartModalRef>) 
     },
   }));
 
+  const isSavedQueryView = chartDetail?.dataSourceType === 'SAVED_QUERY_VIEW';
+
+  const handleChangeChartDetail = useCallback((patch: Partial<IChartItem>) => {
+    setChartDetail((prev) => ({
+      ...prev,
+      ...patch,
+    }));
+  }, []);
+
   const updateChartTitle = (value: string) => {
     setChartDetail({
       ...chartDetail,
@@ -70,6 +79,20 @@ export default forwardRef((props: IProps, ref: ForwardedRef<EditChartModalRef>) 
     });
   };
 
+  const handleBackToChart = () => {
+    setSegmentedValue('editChart');
+  };
+
+  const handleGoToSql = () => {
+    // Obtain user-configured data when switching to SQL
+    const databaseInfoAndMetaData = editorChartSqlRef.current?.getDatabaseInfoAndMetaData();
+    setChartDetail({
+      ...chartDetail,
+      ...databaseInfoAndMetaData,
+    });
+    setSegmentedValue('editChartSql');
+  };
+
   return (
     <>
       <Modal
@@ -84,19 +107,15 @@ export default forwardRef((props: IProps, ref: ForwardedRef<EditChartModalRef>) 
             <EditText className={styles.editText} hoverShowBorder onBlur={updateChartTitle}>
               {chartDetail?.chartSchema?.title || chartDetail?.chartSchema?.summary || ''}
             </EditText>
-            {editableChart && (
+            {editableChart && !isSavedQueryView && (
               <div className={styles.dataConfiguration}>
                 <div
                   className={styles.back}
                   onClick={() => {
-                    setSegmentedValue(segmentedValue === 'editChart' ? 'editChartSql' : 'editChart');
-                    // Obtain user-configured data when switching to a report
-                    if (segmentedValue === 'editChartSql') {
-                      const databaseInfoAndMetaData = editorChartSqlRef.current?.getDatabaseInfoAndMetaData();
-                      setChartDetail({
-                        ...chartDetail,
-                        ...databaseInfoAndMetaData,
-                      });
+                    if (segmentedValue === 'editChart') {
+                      handleGoToSql();
+                    } else {
+                      handleBackToChart();
                     }
                   }}
                 >
@@ -128,10 +147,11 @@ export default forwardRef((props: IProps, ref: ForwardedRef<EditChartModalRef>) 
             <EditorChart
               chartDetail={chartDetail}
               onChangeChartSchema={handleChangeChartSchema}
+              onChangeChartDetail={handleChangeChartDetail}
               className={cx({ [styles.editorChart]: segmentedValue !== 'editChart' })}
               customCommitButton={customCommitButton}
             />
-            {editableChart && (
+            {editableChart && !isSavedQueryView && (
               <EditorChartSql
                 chartDetail={chartDetail}
                 ref={editorChartSqlRef}

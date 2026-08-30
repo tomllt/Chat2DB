@@ -1,0 +1,11 @@
+package ai.chat2db.community.query.excel.domain.api.model;
+
+import lombok.Data;
+
+@Data
+public class ViewMeasure {
+
+    private String fieldId;
+
+    private String aggregation;
+}

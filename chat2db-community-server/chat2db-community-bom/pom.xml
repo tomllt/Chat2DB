@@ -168,6 +168,28 @@
                 <artifactId>chat2db-community-spi</artifactId>
                 <version>${revision}</version>
             </dependency>
+
+            <dependency>
+                <groupId>ai.chat2db</groupId>
+                <artifactId>query-excel-domain-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>ai.chat2db</groupId>
+                <artifactId>query-excel-domain-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>ai.chat2db</groupId>
+                <artifactId>query-excel-storage</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>ai.chat2db</groupId>
+                <artifactId>query-excel-web</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
             <dependency>
                 <groupId>ai.chat2db</groupId>
                 <artifactId>chat2db-community-plugins</artifactId>

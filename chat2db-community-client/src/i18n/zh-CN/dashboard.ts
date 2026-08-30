@@ -70,6 +70,10 @@ export default {
   'dashboard.createDescription.placeholder': '输入仪表盘的描述（选填）',
   'dashboard.delete.confirm': '你确定要删除该表报吗？',
   'dashboard.delete.chart.confirm': '你确定要删除该图表吗？',
+  'dashboard.chart.dataSourceType': '数据源',
+  'dashboard.chart.dataSourceType.legacySql': 'SQL编辑器',
+  'dashboard.chart.dataSourceType.savedQueryView': '保存的查询视图',
+  'dashboard.chart.savedQueryViewSelect.placeholder': '请选择保存的查询视图',
   'dashboard.chart.dataConfiguration': '数据配置',
   'dashboard.chart.backToChart': '返回图表',
   'dashboard.chart.themeColor': '主题颜色',
@@ -100,4 +104,7 @@ export default {
   'dashboard.title.enterDemoMode': '进入演示模式',
   'dashboard.title.exitDemoMode': '退出演示模式',
   'dashboard.share.linkCopied': '仪表盘分享链接已复制到剪贴板',
+  'queryDataset.title': '查询数据集',
+  'savedQueryView.title': '保存查询视图',
+  'excelReportTemplate.title': 'Excel 报表模板',
 };

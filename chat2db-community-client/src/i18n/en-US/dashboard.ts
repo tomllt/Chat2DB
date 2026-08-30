@@ -70,6 +70,10 @@ export default {
   'dashboard.createDescription.placeholder': 'Please enter the description of the dashboard (optional)',
   'dashboard.delete.confirm': 'Are you sure you want to delete this dashboard?',
   'dashboard.delete.chart.confirm': 'Are you sure you want to delete this chart?',
+  'dashboard.chart.dataSourceType': 'Data source',
+  'dashboard.chart.dataSourceType.legacySql': 'SQL Editor',
+  'dashboard.chart.dataSourceType.savedQueryView': 'Saved Query View',
+  'dashboard.chart.savedQueryViewSelect.placeholder': 'Select a saved query view',
   'dashboard.chart.dataConfiguration': 'Data configuration',
   'dashboard.chart.backToChart': 'Back to chart',
   'dashboard.chart.themeColor': 'Theme color',
@@ -100,4 +104,7 @@ export default {
   'dashboard.title.enterDemoMode': 'Enter demo mode',
   'dashboard.title.exitDemoMode': 'Exit demo mode',
   'dashboard.share.linkCopied': 'Dashboard share link copied to clipboard',
+  'queryDataset.title': 'Query Dataset',
+  'savedQueryView.title': 'Saved Query View',
+  'excelReportTemplate.title': 'Excel Report Template',
 };

@@ -43,6 +43,12 @@ export interface IChartItem {
   refreshType?: any;
   // The period for refreshing data is a refresh expression
   refreshCycle?: string;
+  /** Data source type: LEGACY_SQL (existing SQL editor) or SAVED_QUERY_VIEW (published view) */
+  dataSourceType?: 'LEGACY_SQL' | 'SAVED_QUERY_VIEW';
+  /** Saved query view ID (for SAVED_QUERY_VIEW data source) */
+  savedQueryViewId?: number;
+  /** Query dataset ID (for SAVED_QUERY_VIEW data source) */
+  queryDatasetId?: number;
 }
 
 // export interface IOldChartItem {

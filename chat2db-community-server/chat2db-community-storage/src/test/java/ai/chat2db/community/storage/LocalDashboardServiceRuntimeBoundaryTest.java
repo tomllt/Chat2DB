@@ -1,5 +1,6 @@
 package ai.chat2db.community.storage;
 
+import ai.chat2db.community.domain.api.service.dashboard.IChartSavedQueryViewAdapter;
 import ai.chat2db.community.domain.api.service.dashboard.IDashboardService;
 import ai.chat2db.community.domain.api.service.db.IDbConnectionContextService;
 import ai.chat2db.community.domain.api.service.db.IDbDlTemplateService;
@@ -54,6 +55,8 @@ class LocalDashboardServiceRuntimeBoundaryTest {
                     () -> proxy(IDbDlTemplateService.class));
             context.registerBean(IOpsSqlOperationLogService.class,
                     () -> proxy(IOpsSqlOperationLogService.class));
+            context.registerBean(IChartSavedQueryViewAdapter.class,
+                    () -> proxy(IChartSavedQueryViewAdapter.class));
         }
         context.register(LocalDashboardService.class);
         context.refresh();

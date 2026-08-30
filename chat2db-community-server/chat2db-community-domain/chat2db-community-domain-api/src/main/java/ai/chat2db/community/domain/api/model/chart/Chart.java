@@ -64,4 +64,26 @@ public class Chart {
 
 
     private String refreshCycle;
+
+
+    /**
+     * Dataset ID for the saved query view data source (only relevant when
+     * {@link #dataSourceType} is {@code SAVED_QUERY_VIEW}).
+     */
+    private Long queryDatasetId;
+
+
+    /**
+     * Saved query view ID to execute when {@link #dataSourceType} is
+     * {@code SAVED_QUERY_VIEW}.
+     */
+    private Long savedQueryViewId;
+
+
+    /**
+     * Data source type discriminator: {@code LEGACY_SQL} (default) or
+     * {@code SAVED_QUERY_VIEW}.  Values correspond to {@link
+     * ai.chat2db.community.domain.api.enums.ChartDataSourceType}.
+     */
+    private String dataSourceType;
 }
