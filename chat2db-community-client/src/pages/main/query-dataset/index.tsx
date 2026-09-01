@@ -168,6 +168,38 @@ export default memo(() => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<QueryDataset | null>(null);
   const [fields, setFields] = useState<QueryDatasetField[]>([]);
+  const skipInitialEditAutofillRef = useRef(false);
+
+  useEffect(() => {
+    if (columnList.length === 0) {
+      if (!tableName || !selectDatabase?.dataSourceId) {
+        setFields([]);
+      }
+      return;
+    }
+
+    if (skipInitialEditAutofillRef.current) {
+      skipInitialEditAutofillRef.current = false;
+      return;
+    }
+
+    setFields(
+      columnList.map((column) => {
+        const isMeasure = column.dataType === TableDataType.NUMERIC;
+        return {
+          fieldId: undefined,
+          sourceColumn: column.name,
+          displayName: column.name,
+          dataType: column.dataType || column.columnType,
+          role: isMeasure ? 'MEASURE' : 'DIMENSION',
+          aggregation: isMeasure ? 'SUM' : '',
+          filterable: true,
+          sortable: true,
+          visible: true,
+        };
+      }),
+    );
+  }, [columnList, selectDatabase?.dataSourceId, tableName]);
 
   // Preview modal state
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -188,6 +220,7 @@ export default memo(() => {
   // ---- Open create modal ----
   const handleOpenCreate = useCallback(() => {
     setEditingRecord(null);
+    skipInitialEditAutofillRef.current = false;
     setFields([]);
     form.resetFields();
     fieldForm.resetFields();
@@ -214,6 +247,7 @@ export default memo(() => {
         sourceObjectType: detail.sourceObjectType,
       });
       setFields(detail.fields || []);
+      skipInitialEditAutofillRef.current = (detail.fields || []).length > 0;
       setModalOpen(true);
     },
     [form, queryDatasetDetail],
@@ -613,6 +647,7 @@ export default memo(() => {
                 render: (_, __, index) => (
                   <Select
                     size="small"
+                    popupMatchSelectWidth={false}
                     showSearch
                     value={fields[index]?.sourceColumn || undefined}
                     placeholder={i18n('queryDataset.placeholder.columnName')}
@@ -651,6 +686,7 @@ export default memo(() => {
                 render: (_, __, index) => (
                   <Select
                     size="small"
+                    popupMatchSelectWidth={false}
                     showSearch
                     value={fields[index]?.dataType || undefined}
                     placeholder={i18n('queryDataset.placeholder.dataType')}
@@ -666,6 +702,7 @@ export default memo(() => {
                 render: (_, __, index) => (
                   <Select
                     size="small"
+                    popupMatchSelectWidth={false}
                     value={fields[index]?.role || 'DIMENSION'}
                     style={{ width: '100%' }}
                     onChange={(value) => {
@@ -694,6 +731,7 @@ export default memo(() => {
                   return (
                     <Select
                       size="small"
+                      popupMatchSelectWidth={false}
                       value={fields[index]?.aggregation || ''}
                       style={{ width: '100%' }}
                       disabled={!isMeasure}
