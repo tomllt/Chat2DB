@@ -12,7 +12,6 @@ import {
   Upload,
   Popconfirm,
   Space,
-  message,
   Typography,
   type UploadFile,
 } from 'antd';
@@ -39,24 +38,25 @@ import { QueryDataset, QueryDatasetField } from '@/typings/queryDataset';
 import { queryDatasetDetail } from '@/service/queryDataset';
 import i18n from '@/i18n';
 import ModalTitle from '@/components/Modal/ModalTitle';
+import feedback from '@/utils/feedback';
 import ExcelExportModal from '@/blocks/ExcelExportModal';
 
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
-  VALID: { color: 'green', text: 'Valid' },
-  INVALID: { color: 'red', text: 'Invalid' },
-  DISABLED: { color: 'default', text: 'Disabled' },
+  VALID: { color: 'green', text: i18n('excelReportTemplate.status.valid') },
+  INVALID: { color: 'red', text: i18n('excelReportTemplate.status.invalid') },
+  DISABLED: { color: 'default', text: i18n('excelReportTemplate.status.disabled') },
 };
 
 const EMPTY_RESULT_OPTIONS = [
-  { label: 'Empty Sheet', value: 'EMPTY_SHEET' },
-  { label: 'Skip Sheet', value: 'SKIP_SHEET' },
-  { label: 'Error', value: 'ERROR' },
+  { label: i18n('excelReportTemplate.emptyResult.emptySheet'), value: 'EMPTY_SHEET' },
+  { label: i18n('excelReportTemplate.emptyResult.skipSheet'), value: 'SKIP_SHEET' },
+  { label: i18n('excelReportTemplate.emptyResult.error'), value: 'ERROR' },
 ];
 
 const ALIGNMENT_OPTIONS = [
-  { label: 'Left', value: 'LEFT' },
-  { label: 'Center', value: 'CENTER' },
-  { label: 'Right', value: 'RIGHT' },
+  { label: i18n('excelReportTemplate.alignment.left'), value: 'LEFT' },
+  { label: i18n('excelReportTemplate.alignment.center'), value: 'CENTER' },
+  { label: i18n('excelReportTemplate.alignment.right'), value: 'RIGHT' },
 ];
 
 /** The list response returned by the excel-report-templates endpoint. */
@@ -133,7 +133,7 @@ export default memo(() => {
         setPageNo(res.pageNo ?? p ?? pageNo);
         setPageSize(res.pageSize ?? ps ?? pageSize);
       } catch (e: any) {
-        message.error(e?.message || 'Failed to load templates');
+        feedback.error(e?.message || i18n('excelReportTemplate.message.operationFailed'));
       } finally {
         setLoading(false);
       }
@@ -147,7 +147,7 @@ export default memo(() => {
       const res = await savedQueryViewList({ pageNo: 1, pageSize: 100 });
       setViewList(res.data || []);
     } catch (e: any) {
-      message.error(e?.message || 'Failed to load query views');
+      feedback.error(e?.message || i18n('excelReportTemplate.message.loadQueryViewsFailed'));
     }
   }, []);
 
@@ -244,12 +244,12 @@ export default memo(() => {
       values = await createForm.validateFields();
     } catch (e: any) {
       if (e?.errorFields) return;
-      message.error(e?.message || 'Validation failed');
+      feedback.error(e?.message || i18n('excelReportTemplate.message.validationFailed'));
       return;
     }
     const file = fileList[0]?.originFileObj;
     if (!file) {
-      message.error('Please select an .xlsx template file');
+      feedback.error(i18n('excelReportTemplate.message.selectXlsx'));
       return;
     }
     try {
@@ -260,7 +260,7 @@ export default memo(() => {
         queryViewId: values.queryViewId,
         file: file as File,
       });
-      message.success(i18n('common.tips.createSuccess'));
+      feedback.success(i18n('common.tips.createSuccess'));
       setCreateOpen(false);
       setFileList([]);
       createForm.resetFields();
@@ -270,7 +270,7 @@ export default memo(() => {
         loadList(1);
       }
     } catch (e: any) {
-      message.error(e?.message || 'Upload failed');
+      feedback.error(e?.message || i18n('excelReportTemplate.message.uploadFailed'));
     }
   }, [createForm, fileList, handleOpenEdit, loadList]);
 
@@ -279,10 +279,10 @@ export default memo(() => {
     if (!editingRecord?.id) return;
     try {
       await updateSheetConfigs({ id: editingRecord.id, sheetConfigs });
-      message.success(i18n('common.tips.updateSuccess'));
+      feedback.success(i18n('common.tips.updateSuccess'));
       loadList();
     } catch (e: any) {
-      message.error(e?.message || 'Failed to save sheet configs');
+      feedback.error(e?.message || i18n('excelReportTemplate.message.saveSheetConfigsFailed'));
     }
   }, [editingRecord, sheetConfigs, loadList]);
 
@@ -312,10 +312,10 @@ export default memo(() => {
       });
     } catch (e: any) {
       if (e?.errorFields) {
-        message.error('Please fix binding validation errors');
+        feedback.error(i18n('excelReportTemplate.message.fixBindingErrors'));
         return;
       }
-      message.error(e?.message || 'Binding validation failed');
+      feedback.error(e?.message || i18n('excelReportTemplate.message.bindingValidationFailed'));
       return;
     }
     try {
@@ -325,9 +325,9 @@ export default memo(() => {
         bindings: rows,
       });
       setBindings((prev) => ({ ...prev, [activeSheet]: rows }));
-      message.success(i18n('common.tips.updateSuccess'));
+      feedback.success(i18n('common.tips.updateSuccess'));
     } catch (e: any) {
-      message.error(e?.message || 'Failed to save field bindings');
+      feedback.error(e?.message || i18n('excelReportTemplate.message.saveFieldBindingsFailed'));
     }
   }, [editingRecord, activeSheet, bindingForm]);
 
@@ -341,7 +341,7 @@ export default memo(() => {
         const res = await validateExcelTemplate({ id });
         setValidationErrors(Array.isArray(res) ? (res as unknown as ValidationFinding[]) : []);
       } catch (e: any) {
-        setValidationErrors([{ message: e?.message || 'Validation failed' }]);
+        setValidationErrors([{ message: e?.message || i18n('excelReportTemplate.message.validationFailed') }]);
       } finally {
         setValidating(false);
       }
@@ -354,10 +354,10 @@ export default memo(() => {
     async (record: ExcelReportTemplate) => {
       try {
         await copyExcelTemplate({ id: record.id! });
-        message.success(i18n('common.button.copySuccessfully'));
+        feedback.success(i18n('common.button.copySuccessfully'));
         loadList(1);
       } catch (e: any) {
-        message.error(e?.message || 'Copy failed');
+        feedback.error(e?.message || i18n('excelReportTemplate.message.copyFailed'));
       }
     },
     [loadList],
@@ -368,10 +368,10 @@ export default memo(() => {
     async (id: number) => {
       try {
         await deleteExcelTemplate({ id });
-        message.success(i18n('common.text.successfullyDelete'));
+        feedback.success(i18n('common.text.successfullyDelete'));
         loadList(1);
       } catch (e: any) {
-        message.error(e?.message || i18n('common.text.errorDelete'));
+        feedback.error(e?.message || i18n('common.text.errorDelete'));
       }
     },
     [loadList],
@@ -387,7 +387,7 @@ export default memo(() => {
   const beforeUpload = useCallback((file: File) => {
     const isXlsx = file.name.toLowerCase().endsWith('.xlsx');
     if (!isXlsx) {
-      message.error('Only .xlsx files are accepted');
+      feedback.error(i18n('excelReportTemplate.message.onlyXlsx'));
       return Upload.LIST_IGNORE;
     }
     return false; // block auto upload; the form submit triggers the real upload
@@ -439,7 +439,7 @@ export default memo(() => {
     () => [
       {
         key: 'sheet-configs',
-        label: 'Sheet Configs',
+        label: i18n('excelReportTemplate.sheetConfig.title'),
         children: (
           <div>
             <Table<SheetConfig>
@@ -451,13 +451,13 @@ export default memo(() => {
               className={styles.bindingTable}
               columns={[
                 {
-                  title: 'Sheet Name',
+                  title: i18n('excelReportTemplate.sheetConfig.sheetName'),
                   dataIndex: 'sheetName',
                   width: 130,
                   render: (_, record) => <Typography.Text strong>{record.sheetName}</Typography.Text>,
                 },
                 {
-                  title: 'Data Start Row',
+                  title: i18n('excelReportTemplate.sheetConfig.dataStartRow'),
                   dataIndex: 'dataStartRow',
                   width: 110,
                   render: (_, __, index) => (
@@ -471,7 +471,7 @@ export default memo(() => {
                   ),
                 },
                 {
-                  title: 'Data Start Column',
+                  title: i18n('excelReportTemplate.sheetConfig.dataStartColumn'),
                   dataIndex: 'dataStartColumn',
                   width: 120,
                   render: (_, __, index) => (
@@ -485,7 +485,7 @@ export default memo(() => {
                   ),
                 },
                 {
-                  title: 'Freeze Rows',
+                  title: i18n('excelReportTemplate.sheetConfig.freezeRows'),
                   dataIndex: 'freezeRows',
                   width: 100,
                   render: (_, __, index) => (
@@ -499,7 +499,7 @@ export default memo(() => {
                   ),
                 },
                 {
-                  title: 'Freeze Columns',
+                  title: i18n('excelReportTemplate.sheetConfig.freezeColumns'),
                   dataIndex: 'freezeColumns',
                   width: 110,
                   render: (_, __, index) => (
@@ -513,7 +513,7 @@ export default memo(() => {
                   ),
                 },
                 {
-                  title: 'Empty Result',
+                  title: i18n('excelReportTemplate.sheetConfig.emptyResult'),
                   dataIndex: 'emptyResultBehavior',
                   width: 130,
                   render: (_, __, index) => (
@@ -527,7 +527,7 @@ export default memo(() => {
                   ),
                 },
                 {
-                  title: 'Auto Width',
+                  title: i18n('excelReportTemplate.sheetConfig.autoWidth'),
                   dataIndex: 'autoWidth',
                   width: 90,
                   render: (_, __, index) => (
@@ -541,23 +541,23 @@ export default memo(() => {
               ]}
             />
             <Button type="primary" style={{ marginTop: 16 }} onClick={handleSaveSheetConfigs}>
-              Save Sheet Configs
+{i18n('common.button.save')}
             </Button>
           </div>
         ),
       },
       {
         key: 'field-bindings',
-        label: 'Field Bindings',
+        label: i18n('excelReportTemplate.binding.title'),
         children: (
           <div>
             <Space style={{ marginBottom: 8 }} wrap>
-              <span>Sheet:</span>
+              {i18n('excelReportTemplate.sheetConfig.sheetName')}:
               <Select
                 size="small"
                 style={{ width: 200 }}
                 value={activeSheet || undefined}
-                placeholder="Select sheet"
+                placeholder={i18n('excelReportTemplate.placeholder.selectSheet')}
                 onChange={(value) => {
                   setActiveSheet(value);
                   bindingForm.setFieldsValue(bindings[value] || []);
@@ -567,7 +567,7 @@ export default memo(() => {
                   .map((c) => ({ label: c.sheetName!, value: c.sheetName! }))}
               />
               <Button type="dashed" size="small" icon={<Plus size={12} />} onClick={addBinding}>
-                Add Binding
+                {i18n('excelReportTemplate.binding.title')}
               </Button>
             </Space>
             <Form form={bindingForm} component={false}>
@@ -580,7 +580,7 @@ export default memo(() => {
                 className={styles.bindingTable}
                 columns={[
                   {
-                    title: 'Query Field',
+                    title: i18n('excelReportTemplate.binding.queryField'),
                     dataIndex: 'queryFieldId',
                     width: 170,
                     render: (_, __, index) => (
@@ -592,7 +592,7 @@ export default memo(() => {
                         <Select
                           size="small"
                           style={{ width: '100%' }}
-                          placeholder="Select field"
+                          placeholder={i18n('excelReportTemplate.placeholder.selectField')}
                           options={getViewFieldOptions(editingRecord?.queryViewId)}
                           onChange={(value) => updateBinding(index, { queryFieldId: value })}
                         />
@@ -600,7 +600,7 @@ export default memo(() => {
                     ),
                   },
                   {
-                    title: 'Target Column',
+                    title: i18n('excelReportTemplate.binding.targetColumn'),
                     dataIndex: 'targetColumn',
                     width: 120,
                     render: (_, __, index) => (
@@ -614,7 +614,7 @@ export default memo(() => {
                       >
                         <Input
                           size="small"
-                          placeholder="e.g. A"
+                          placeholder={i18n('excelReportTemplate.placeholder.dataStartColumn')}
                           style={{ textTransform: 'uppercase' }}
                           onChange={(e) => updateBinding(index, { targetColumn: e.target.value })}
                         />
@@ -622,49 +622,49 @@ export default memo(() => {
                     ),
                   },
                   {
-                    title: 'Display Name',
+                    title: i18n('excelReportTemplate.binding.displayName'),
                     dataIndex: 'displayName',
                     width: 130,
                     render: (_, __, index) => (
                       <Form.Item name={[index, 'displayName']} style={{ marginBottom: 0 }}>
                         <Input
                           size="small"
-                          placeholder="header text"
+                          placeholder={i18n('excelReportTemplate.placeholder.sheetName')}
                           onChange={(e) => updateBinding(index, { displayName: e.target.value })}
                         />
                       </Form.Item>
                     ),
                   },
                   {
-                    title: 'Number Format',
+                    title: i18n('excelReportTemplate.binding.numberFormat'),
                     dataIndex: 'numberFormat',
                     width: 120,
                     render: (_, __, index) => (
                       <Form.Item name={[index, 'numberFormat']} style={{ marginBottom: 0 }}>
                         <Input
                           size="small"
-                          placeholder="e.g. 0.00"
+                          placeholder={i18n('excelReportTemplate.placeholder.dataStartRow')}
                           onChange={(e) => updateBinding(index, { numberFormat: e.target.value })}
                         />
                       </Form.Item>
                     ),
                   },
                   {
-                    title: 'Null Display',
+                    title: i18n('excelReportTemplate.binding.nullDisplay'),
                     dataIndex: 'nullDisplay',
                     width: 110,
                     render: (_, __, index) => (
                       <Form.Item name={[index, 'nullDisplay']} style={{ marginBottom: 0 }}>
                         <Input
                           size="small"
-                          placeholder="e.g. -"
+                          placeholder={i18n('excelReportTemplate.placeholder.freezeRows')}
                           onChange={(e) => updateBinding(index, { nullDisplay: e.target.value })}
                         />
                       </Form.Item>
                     ),
                   },
                   {
-                    title: 'Alignment',
+                    title: i18n('excelReportTemplate.binding.alignment'),
                     dataIndex: 'alignment',
                     width: 110,
                     render: (_, __, index) => (
@@ -673,7 +673,7 @@ export default memo(() => {
                           size="small"
                           style={{ width: '100%' }}
                           allowClear
-                          placeholder="Auto"
+                          placeholder={i18n('excelReportTemplate.placeholder.auto')}
                           options={ALIGNMENT_OPTIONS}
                           onChange={(value) => updateBinding(index, { alignment: value })}
                         />
@@ -710,7 +710,7 @@ export default memo(() => {
               />
             </Form>
             <Button type="primary" style={{ marginTop: 16 }} onClick={handleSaveBindings}>
-              Save Field Bindings
+{i18n('common.button.save')}
             </Button>
           </div>
         ),
@@ -755,13 +755,13 @@ export default memo(() => {
         },
       },
       {
-        title: 'Template Version',
+        title: i18n('excelReportTemplate.templateVersion'),
         dataIndex: 'templateVersion',
         key: 'templateVersion',
         width: 130,
       },
       {
-        title: 'Query View',
+        title: i18n('excelReportTemplate.queryView'),
         dataIndex: 'queryViewId',
         key: 'queryViewId',
         width: 150,
@@ -804,7 +804,7 @@ export default memo(() => {
               icon={<ShieldCheck size={14} />}
               onClick={() => handleValidate(record.id!)}
             >
-              Validate
+{i18n('excelReportTemplate.action.validate')}
             </Button>
             <Button
               type="link"
@@ -812,7 +812,7 @@ export default memo(() => {
               icon={<FileDown size={14} />}
               onClick={() => handleOpenExport(record)}
             >
-              Export Excel
+{i18n('excelReportTemplate.action.exportExcel')}
             </Button>
             <Popconfirm
               title={i18n('common.tips.delete.confirm')}
@@ -842,7 +842,7 @@ export default memo(() => {
           current: pageNo,
           pageSize,
           showSizeChanger: true,
-          showTotal: (t) => `Total ${t} items`,
+          showTotal: (t) => i18n('queryPreview.total', t),
           onChange: (p, ps) => loadList(p, ps),
         }}
         search={false}
@@ -870,7 +870,7 @@ export default memo(() => {
         title={
           <ModalTitle
             iconCode="icon-table"
-            title="Upload Excel Report Template"
+            title={i18n('excelReportTemplate.modal.uploadTitle')}
           />
         }
         maskClosable={false}
@@ -888,21 +888,21 @@ export default memo(() => {
             name="name"
             rules={[{ required: true, message: i18n('common.form.error.required') }]}
           >
-            <Input placeholder="Template name" />
+            <Input placeholder={i18n('excelReportTemplate.placeholder.templateName')} />
           </Form.Item>
           <Form.Item
             label={i18n('common.label.description')}
             name="description"
           >
-            <Input.TextArea placeholder="Description (optional)" rows={2} />
+            <Input.TextArea placeholder={i18n('excelReportTemplate.placeholder.description')} rows={2} />
           </Form.Item>
           <Form.Item
-            label="Query View"
+            label={i18n('excelReportTemplate.queryView')}
             name="queryViewId"
             rules={[{ required: true, message: i18n('common.form.error.required') }]}
           >
             <Select
-              placeholder="Select a published query view"
+              placeholder={i18n('excelReportTemplate.placeholder.publishedQueryView')}
               showSearch
               optionFilterProp="label"
               options={viewList
@@ -910,7 +910,7 @@ export default memo(() => {
                 .map((v) => ({ label: v.name || String(v.id), value: v.id! }))}
             />
           </Form.Item>
-          <Form.Item label="Template File" required>
+          <Form.Item label={i18n('excelReportTemplate.placeholder.templateFile')} required>
             <Upload
               accept=".xlsx"
               beforeUpload={beforeUpload}
@@ -918,7 +918,7 @@ export default memo(() => {
               onChange={handleUploadChange}
               maxCount={1}
             >
-              <Button icon={<UploadCloud size={14} />}>Select .xlsx file</Button>
+              <Button icon={<UploadCloud size={14} />}>{i18n('excelReportTemplate.action.exportExcel')}</Button>
             </Upload>
           </Form.Item>
         </Form>
@@ -929,7 +929,7 @@ export default memo(() => {
         title={
           <ModalTitle
             iconCode="icon-table"
-            title="Edit Excel Report Template"
+            title={i18n('excelReportTemplate.modal.editTitle')}
           />
         }
         maskClosable={false}
@@ -960,7 +960,7 @@ export default memo(() => {
         title={
           <ModalTitle
             iconCode="icon-shield-check"
-            title="Validation Result"
+            title={i18n('excelReportTemplate.modal.validateTitle')}
           />
         }
         open={validateOpen}
@@ -974,9 +974,9 @@ export default memo(() => {
         width={640}
       >
         {validating ? (
-          <div style={{ textAlign: 'center', padding: 24 }}>Validating…</div>
+          <div style={{ textAlign: 'center', padding: 24 }}>{i18n('excelReportTemplate.message.validationFailed')}</div>
         ) : validationErrors.length === 0 ? (
-          <Typography.Text type="success">Template is valid. No issues found.</Typography.Text>
+          <Typography.Text type="success">{i18n('excelReportTemplate.message.validateSuccess')}</Typography.Text>
         ) : (
           <div className={styles.validationErrors}>
             <Table<ValidationFinding>
@@ -986,19 +986,19 @@ export default memo(() => {
               size="small"
               columns={[
                 {
-                  title: 'Sheet',
+                  title: i18n('excelReportTemplate.table.sheet'),
                   dataIndex: 'sheetName',
                   width: 140,
                   render: (_, record) => record.sheetName || '-',
                 },
                 {
-                  title: 'Cell Range',
+                  title: i18n('excelReportTemplate.table.cellRange'),
                   dataIndex: 'cellRange',
                   width: 120,
                   render: (_, record) => record.cellRange || '-',
                 },
                 {
-                  title: 'Message',
+                  title: i18n('excelReportTemplate.table.message'),
                   dataIndex: 'message',
                   render: (_, record) => (
                     <Space size={4}>

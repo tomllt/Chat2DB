@@ -2,6 +2,7 @@ import React from 'react';
 import { Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { PreviewResult } from '@/typings/queryDataset';
+import i18n from '@/i18n';
 
 interface QueryPreviewProps {
   preview: PreviewResult | null;
@@ -16,7 +17,7 @@ const QueryPreview: React.FC<QueryPreviewProps> = ({ preview, loading, onPageCha
   // and would render an empty grid. Guard so a null/empty result is explicit
   // instead of a broken table.
   if (!preview.columns || preview.columns.length === 0) {
-    return <div style={{ padding: 16, color: '#999' }}>暂无数据</div>;
+    return <div style={{ padding: 16, color: '#999' }}>{i18n('queryPreview.noData')}</div>;
   }
 
   // Verify row keys line up with the column list (used by Table via dataIndex).
@@ -43,7 +44,7 @@ const QueryPreview: React.FC<QueryPreviewProps> = ({ preview, loading, onPageCha
         pageSize: preview.pageSize,
         total: preview.total,
         showSizeChanger: false,
-        showTotal: (total) => `共 ${total} 条`,
+        showTotal: (total) => i18n('queryPreview.total', total),
         onChange: onPageChange,
       }}
       loading={loading}
