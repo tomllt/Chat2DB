@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useUpdateEffect } from 'ahooks';
 import {
   Button,
   Form,
@@ -9,7 +10,6 @@ import {
   Tag,
   Popconfirm,
   Space,
-  message,
   Checkbox,
 } from 'antd';
 import { Modal } from '@chat2db/ui';
@@ -17,9 +17,12 @@ import ProTable, { ActionType, ProColumns } from '@ant-design/pro-table';
 import { Plus, Pencil, Copy, Eye, CheckCircle, XCircle, Trash2, Send } from 'lucide-react';
 import { useStyles } from './style';
 import { useQueryDatasetStore } from '@/store/queryDataset/store';
+import useSelectDatabase from '@/hooks/useSelectDatabase';
+import sqlService from '@/service/sql';
 import { QueryDataset, QueryDatasetField, PreviewResult } from '@/typings/queryDataset';
 import i18n from '@/i18n';
 import ModalTitle from '@/components/Modal/ModalTitle';
+import feedback from '@/utils/feedback';
 import QueryPreview from '@/blocks/QueryPreview';
 
 const ROLE_OPTIONS = [
@@ -88,6 +91,48 @@ export default memo(() => {
     setLoading: state.setLoading,
   }));
 
+  const { dataSourceList, databaseList, schemaList, selectDatabase, onChangeSelectDatabase } = useSelectDatabase({});
+  const [tableList, setTableList] = useState<{ value: string; label: string }[]>([]);
+
+  useUpdateEffect(() => {
+    form.setFieldsValue({
+      datasourceId: selectDatabase?.dataSourceId,
+      databaseName: selectDatabase?.databaseName,
+      schemaName: selectDatabase?.schemaName,
+    });
+  }, [selectDatabase]);
+
+  useEffect(() => {
+    const dataSourceId = selectDatabase?.dataSourceId;
+    const databaseName = selectDatabase?.supportDatabase === false
+      ? undefined
+      : selectDatabase?.databaseName;
+    const schemaName = selectDatabase?.schemaName;
+
+    setTableList([]);
+    if (dataSourceId === undefined || (!databaseName && !schemaName)) {
+      return;
+    }
+
+    let active = true;
+    sqlService
+      .getTableList({ dataSourceId, databaseName, schemaName, pageNo: 1, pageSize: 100 })
+      .then((res) => {
+        if (active) {
+          setTableList((res?.data || []).map((item) => ({ value: item.name, label: item.name })));
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    selectDatabase?.dataSourceId,
+    selectDatabase?.databaseName,
+    selectDatabase?.schemaName,
+    selectDatabase?.supportDatabase,
+  ]);
+
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<QueryDataset | null>(null);
@@ -154,16 +199,16 @@ export default memo(() => {
 
       if (editingRecord?.id) {
         await updateQueryDataset({ id: editingRecord.id, ...payload });
-        message.success(i18n('common.tips.updateSuccess'));
+        feedback.success(i18n('common.tips.updateSuccess'));
       } else {
         await createQueryDataset(payload);
-        message.success(i18n('common.tips.createSuccess'));
+        feedback.success(i18n('common.tips.createSuccess'));
       }
       setModalOpen(false);
       loadList(1);
     } catch (e: any) {
       if (e?.errorFields) return; // form validation error
-      message.error(e?.message || 'Operation failed');
+      feedback.error(e?.message || 'Operation failed');
     }
   }, [form, fields, editingRecord, updateQueryDataset, createQueryDataset, loadList]);
 
@@ -172,9 +217,9 @@ export default memo(() => {
     async (id: number) => {
       try {
         await deleteQueryDataset(id);
-        message.success(i18n('common.text.successfullyDelete'));
+        feedback.success(i18n('common.text.successfullyDelete'));
       } catch (e: any) {
-        message.error(e?.message || i18n('common.text.errorDelete'));
+        feedback.error(e?.message || i18n('common.text.errorDelete'));
       }
     },
     [deleteQueryDataset],
@@ -185,10 +230,10 @@ export default memo(() => {
     async (id: number) => {
       try {
         await publish(id);
-        message.success('Published successfully');
+        feedback.success('Published successfully');
         loadList();
       } catch (e: any) {
-        message.error(e?.message || 'Publish failed');
+        feedback.error(e?.message || 'Publish failed');
       }
     },
     [publish, loadList],
@@ -199,10 +244,10 @@ export default memo(() => {
     async (id: number) => {
       try {
         await disable(id);
-        message.success('Disabled successfully');
+        feedback.success('Disabled successfully');
         loadList();
       } catch (e: any) {
-        message.error(e?.message || 'Disable failed');
+        feedback.error(e?.message || 'Disable failed');
       }
     },
     [disable, loadList],
@@ -213,11 +258,11 @@ export default memo(() => {
     async (record: QueryDataset) => {
       try {
         const newId = await copy(record.id!);
-        message.success(i18n('common.button.copySuccessfully'));
+        feedback.success(i18n('common.button.copySuccessfully'));
         loadList(1);
         return newId;
       } catch (e: any) {
-        message.error(e?.message || 'Copy failed');
+        feedback.error(e?.message || 'Copy failed');
       }
     },
     [copy, loadList],
@@ -231,7 +276,7 @@ export default memo(() => {
       try {
         await getPreview(id, 1, 20);
       } catch (e: any) {
-        message.error(e?.message || 'Preview failed');
+        feedback.error(e?.message || 'Preview failed');
       }
     },
     [getPreview],
@@ -430,6 +475,19 @@ export default memo(() => {
           form={form}
           layout="vertical"
           autoComplete="off"
+          onValuesChange={(changedValues, allValues) => {
+            if ('datasourceId' in changedValues) {
+              form.setFieldValue('databaseName', undefined);
+              form.setFieldValue('schemaName', undefined);
+            } else if ('databaseName' in changedValues) {
+              form.setFieldValue('schemaName', undefined);
+            }
+            onChangeSelectDatabase({
+              dataSourceId: allValues.datasourceId,
+              databaseName: allValues.databaseName,
+              schemaName: allValues.schemaName,
+            });
+          }}
           style={{ maxHeight: 500, overflowY: 'auto' }}
         >
           <Form.Item
@@ -445,21 +503,42 @@ export default memo(() => {
           >
             <Input.TextArea placeholder="Description (optional)" rows={2} />
           </Form.Item>
-          <Form.Item label="Data Source ID" name="datasourceId">
-            <Input placeholder="Data source ID" />
+          <Form.Item label={i18n('common.dataSource.title')} name="datasourceId">
+            <Select
+              showSearch
+              options={dataSourceList || []}
+              placeholder={i18n('common.dataSource.title')}
+            />
           </Form.Item>
-          <Form.Item label={i18n('common.database.title')} name="databaseName">
-            <Input placeholder="Database name" />
-          </Form.Item>
-          <Form.Item label="Schema" name="schemaName">
-            <Input placeholder="Schema name" />
-          </Form.Item>
+          {selectDatabase?.supportDatabase !== false && (
+            <Form.Item label={i18n('common.database.title')} name="databaseName">
+              <Select
+                showSearch
+                options={databaseList || []}
+                placeholder={i18n('common.database.title')}
+              />
+            </Form.Item>
+          )}
+          {selectDatabase?.supportSchema !== false && (
+            <Form.Item label={i18n('common.schema.title')} name="schemaName">
+              <Select
+                showSearch
+                options={schemaList || []}
+                placeholder={i18n('common.schema.title')}
+              />
+            </Form.Item>
+          )}
           <Form.Item
             label={i18n('common.text.tableName')}
             name="tableName"
             rules={[{ required: true, message: i18n('common.form.error.required') }]}
           >
-            <Input placeholder="Table name" />
+            <Select
+              showSearch
+              options={tableList}
+              disabled={!selectDatabase?.dataSourceId}
+              placeholder={i18n('common.text.tableName')}
+            />
           </Form.Item>
           <Form.Item label="Source Object Type" name="sourceObjectType">
             <Select
