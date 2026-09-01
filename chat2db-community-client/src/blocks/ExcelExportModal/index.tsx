@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useState } from 'react';
-import { message, Modal, Select, Typography } from 'antd';
+import { Modal, Select, Typography } from 'antd';
 import {
   excelTemplateList,
   exportExcel,
@@ -9,6 +9,7 @@ import {
 import { ViewFilter } from '@/typings/savedQueryView';
 import feedback from '@/utils/feedback';
 import ModalTitle from '@/components/Modal/ModalTitle';
+import i18n from '@/i18n';
 
 interface ExcelExportModalProps {
   open: boolean;
@@ -48,7 +49,7 @@ export default memo<ExcelExportModalProps>(({
       const valid = (res.data || []).filter((t) => t.status === 'VALID');
       setTemplates(valid);
     } catch (e: any) {
-      feedback.error(e?.message || 'Failed to load templates');
+      feedback.error(e?.message || i18n('excelExport.message.loadFailed'));
     }
   }, []);
 
@@ -56,7 +57,7 @@ export default memo<ExcelExportModalProps>(({
 
   const handleExport = useCallback(async () => {
     if (!selectedTemplateId) {
-      message.warning('Please select a template');
+      feedback.warning(i18n('excelExport.message.pleaseSelectTemplate'));
       return;
     }
     setExporting(true);
@@ -72,17 +73,17 @@ export default memo<ExcelExportModalProps>(({
       });
       if (res?.downloadToken && res?.exportId != null) {
         window.open(downloadExcel(res.exportId, res.downloadToken), '_blank');
-        message.success('Export started');
+        feedback.success(i18n('excelExport.message.exportStarted'));
       } else {
-        message.warning('Export finished but returned no download token');
+        feedback.warning(i18n('excelExport.message.exportNoToken'));
       }
       onClose();
     } catch (e: any) {
       const code = e?.errorCode;
       if (code && code.startsWith('EX_')) {
-        feedback.error(e?.errorMessage || 'Export failed');
+        feedback.error(e?.errorMessage || i18n('excelExport.message.exportFailed'));
       } else {
-        message.error(e?.message || 'Export failed');
+        feedback.error(e?.message || i18n('excelExport.message.exportFailed'));
       }
     } finally {
       setExporting(false);
@@ -91,21 +92,21 @@ export default memo<ExcelExportModalProps>(({
 
   return (
     <Modal
-      title={<ModalTitle iconCode="icon-export" title="Export to Excel" />}
+      title={<ModalTitle iconCode="icon-export" title={i18n('excelExport.title')} />}
       open={open}
       onOk={handleExport}
       onCancel={onClose}
-      okText="Export"
+      okText={i18n('excelExport.export')}
       okButtonProps={{ loading: exporting }}
       confirmLoading={exporting}
       destroyOnClose
       width={480}
     >
       <div style={{ marginBottom: 16 }}>
-        <Typography.Text strong>Select Template</Typography.Text>
+        <Typography.Text strong>{i18n('excelExport.selectTemplate')}</Typography.Text>
         <Select
           style={{ width: '100%', marginTop: 4 }}
-          placeholder="Select an Excel template"
+          placeholder={i18n('excelExport.placeholder')}
           value={selectedTemplateId}
           onChange={setSelectedTemplateId}
           disabled={templateId != null}
@@ -116,11 +117,11 @@ export default memo<ExcelExportModalProps>(({
         />
       </div>
       {selectedTemplate && (
-        <Typography.Text type="secondary">
-          Linked View: {selectedTemplate.queryViewId
-            ? `#${selectedTemplate.queryViewId}`
-            : '-'}
-        </Typography.Text>
+<Typography.Text type="secondary">
+           {i18n('excelExport.linkedView')}: {selectedTemplate.queryViewId
+             ? `#${selectedTemplate.queryViewId}`
+             : '-'}
+         </Typography.Text>
       )}
     </Modal>
   );

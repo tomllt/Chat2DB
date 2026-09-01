@@ -9,7 +9,6 @@ import {
   Tag,
   Popconfirm,
   Space,
-  message,
 } from 'antd';
 import { Modal } from '@chat2db/ui';
 import ProTable, { ActionType, ProColumns } from '@ant-design/pro-table';
@@ -19,58 +18,59 @@ import { useSavedQueryViewStore } from '@/store/savedQueryView/store';
 import { SavedQueryView, ViewFilter, ViewDimension, ViewMeasure, ViewSort } from '@/typings/savedQueryView';
 import i18n from '@/i18n';
 import ModalTitle from '@/components/Modal/ModalTitle';
+import feedback from '@/utils/feedback';
 import QueryPreview from '@/blocks/QueryPreview';
 import ExcelExportModal from '@/blocks/ExcelExportModal';
 
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
-  PUBLISHED: { color: 'blue', text: 'Published' },
-  DRAFT: { color: 'orange', text: 'Draft' },
-  DISABLED: { color: 'red', text: 'Disabled' },
-  INVALID: { color: 'grey', text: 'Invalid' },
+  PUBLISHED: { color: 'blue', text: i18n('savedQueryView.status.published') },
+  DRAFT: { color: 'orange', text: i18n('savedQueryView.status.draft') },
+  DISABLED: { color: 'red', text: i18n('savedQueryView.status.disabled') },
+  INVALID: { color: 'grey', text: i18n('savedQueryView.status.invalid') },
 };
 
 const FILTER_TYPE_OPTIONS = [
-  { label: 'Text', value: 'TEXT' },
-  { label: 'Numeric', value: 'NUMERIC' },
-  { label: 'Date', value: 'DATE' },
-  { label: 'Boolean', value: 'BOOLEAN' },
+  { label: i18n('savedQueryView.filterType.text'), value: 'TEXT' },
+  { label: i18n('savedQueryView.filterType.numeric'), value: 'NUMERIC' },
+  { label: i18n('savedQueryView.filterType.date'), value: 'DATE' },
+  { label: i18n('savedQueryView.filterType.boolean'), value: 'BOOLEAN' },
 ];
 
 const TEXT_OPERATORS = [
-  { label: 'Equals', value: 'EQ' },
-  { label: 'Not Equals', value: 'NEQ' },
-  { label: 'Contains', value: 'CONTAINS' },
-  { label: 'In', value: 'IN' },
+  { label: i18n('savedQueryView.operator.eq'), value: 'EQ' },
+  { label: i18n('savedQueryView.operator.neq'), value: 'NEQ' },
+  { label: i18n('savedQueryView.operator.contains'), value: 'CONTAINS' },
+  { label: i18n('savedQueryView.operator.in'), value: 'IN' },
 ];
 
 const NUMERIC_OPERATORS = [
-  { label: 'Equals', value: 'EQ' },
-  { label: 'Not Equals', value: 'NEQ' },
-  { label: 'Greater Than', value: 'GT' },
-  { label: 'Greater or Equal', value: 'GTE' },
-  { label: 'Less Than', value: 'LT' },
-  { label: 'Less or Equal', value: 'LTE' },
-  { label: 'Between', value: 'BETWEEN' },
+  { label: i18n('savedQueryView.operator.eq'), value: 'EQ' },
+  { label: i18n('savedQueryView.operator.neq'), value: 'NEQ' },
+  { label: i18n('savedQueryView.operator.gt'), value: 'GT' },
+  { label: i18n('savedQueryView.operator.gte'), value: 'GTE' },
+  { label: i18n('savedQueryView.operator.lt'), value: 'LT' },
+  { label: i18n('savedQueryView.operator.lte'), value: 'LTE' },
+  { label: i18n('savedQueryView.operator.between'), value: 'BETWEEN' },
 ];
 
 const DATE_OPERATORS = [
-  { label: 'Before', value: 'DATE_BEFORE' },
-  { label: 'After', value: 'DATE_AFTER' },
-  { label: 'Date Range', value: 'DATE_RANGE' },
+  { label: i18n('savedQueryView.operator.dateBefore'), value: 'DATE_BEFORE' },
+  { label: i18n('savedQueryView.operator.dateAfter'), value: 'DATE_AFTER' },
+  { label: i18n('savedQueryView.operator.dateRange'), value: 'DATE_RANGE' },
 ];
 
 const BOOLEAN_OPERATORS = [
-  { label: 'Equals', value: 'EQ' },
-  { label: 'Not Equals', value: 'NEQ' },
+  { label: i18n('savedQueryView.operator.eq'), value: 'EQ' },
+  { label: i18n('savedQueryView.operator.neq'), value: 'NEQ' },
 ];
 
 const ROLE_OPTIONS = [
-  { label: 'Row', value: 'ROW' },
-  { label: 'Column', value: 'COLUMN' },
+  { label: i18n('savedQueryView.role.row'), value: 'ROW' },
+  { label: i18n('savedQueryView.role.column'), value: 'COLUMN' },
 ];
 
 const SORT_DIRECTION_OPTIONS = [
-  { label: 'None', value: 'NONE' },
+  { label: i18n('savedQueryView.sort.none'), value: 'NONE' },
   { label: 'ASC', value: 'ASC' },
   { label: 'DESC', value: 'DESC' },
 ];
@@ -201,16 +201,16 @@ export default memo(() => {
 
       if (editingRecord?.id) {
         await updateSavedQueryView({ id: editingRecord.id, ...payload });
-        message.success(i18n('common.tips.updateSuccess'));
+        feedback.success(i18n('common.tips.updateSuccess'));
       } else {
         await createSavedQueryView(payload);
-        message.success(i18n('common.tips.createSuccess'));
+        feedback.success(i18n('common.tips.createSuccess'));
       }
       setModalOpen(false);
       loadList(1);
     } catch (e: any) {
       if (e?.errorFields) return; // form validation error
-      message.error(e?.message || 'Operation failed');
+      feedback.error(e?.message || i18n('queryDataset.message.operationFailed'));
     }
   }, [form, filters, dimensions, measures, sorts, editingRecord, updateSavedQueryView, createSavedQueryView, loadList]);
 
@@ -219,9 +219,9 @@ export default memo(() => {
     async (id: number) => {
       try {
         await deleteSavedQueryView(id);
-        message.success(i18n('common.text.successfullyDelete'));
+        feedback.success(i18n('common.text.successfullyDelete'));
       } catch (e: any) {
-        message.error(e?.message || i18n('common.text.errorDelete'));
+        feedback.error(e?.message || i18n('common.text.errorDelete'));
       }
     },
     [deleteSavedQueryView],
@@ -232,10 +232,10 @@ export default memo(() => {
     async (id: number) => {
       try {
         await publish(id);
-        message.success('Published successfully');
+        feedback.success(i18n('queryDataset.message.publishSuccess'));
         loadList();
       } catch (e: any) {
-        message.error(e?.message || 'Publish failed');
+        feedback.error(e?.message || i18n('queryDataset.message.publishFailed'));
       }
     },
     [publish, loadList],
@@ -246,10 +246,10 @@ export default memo(() => {
     async (id: number) => {
       try {
         await disable(id);
-        message.success('Disabled successfully');
+        feedback.success(i18n('queryDataset.message.disableSuccess'));
         loadList();
       } catch (e: any) {
-        message.error(e?.message || 'Disable failed');
+        feedback.error(e?.message || i18n('queryDataset.message.disableFailed'));
       }
     },
     [disable, loadList],
@@ -260,11 +260,11 @@ export default memo(() => {
     async (record: SavedQueryView) => {
       try {
         const newId = await copy(record.id!);
-        message.success(i18n('common.button.copySuccessfully'));
+        feedback.success(i18n('common.button.copySuccessfully'));
         loadList(1);
         return newId;
       } catch (e: any) {
-        message.error(e?.message || 'Copy failed');
+        feedback.error(e?.message || i18n('queryDataset.message.copyFailed'));
       }
     },
     [copy, loadList],
@@ -281,7 +281,7 @@ export default memo(() => {
         const filterOverrides = record?.filters?.length ? JSON.stringify(record.filters) : undefined;
         await getPreview(id, 1, 20, filterOverrides);
       } catch (e: any) {
-        message.error(e?.message || 'Preview failed');
+        feedback.error(e?.message || i18n('queryDataset.message.previewFailed'));
       }
     },
     [getPreview],
@@ -382,13 +382,13 @@ export default memo(() => {
         width: 180,
       },
       {
-        title: 'Dataset ID',
+        title: i18n('savedQueryView.datasetId'),
         dataIndex: 'datasetId',
         key: 'datasetId',
         width: 100,
       },
       {
-        title: 'Version',
+        title: i18n('savedQueryView.version'),
         dataIndex: 'version',
         key: 'version',
         width: 80,
@@ -455,7 +455,7 @@ export default memo(() => {
               icon={<Eye size={14} />}
               onClick={() => handlePreview(record.id!)}
             >
-              Preview
+i18n('savedQueryView.action.preview')
             </Button>
             <Button
               type="link"
@@ -463,7 +463,7 @@ export default memo(() => {
               icon={<FileDown size={14} />}
               onClick={() => handleOpenExport(record.id!)}
             >
-              Export Excel
+{i18n('savedQueryView.action.exportExcel')}
             </Button>
             <Popconfirm
               title={i18n('common.tips.delete.confirm')}
@@ -493,7 +493,7 @@ export default memo(() => {
           current: pageNo,
           pageSize,
           showSizeChanger: true,
-          showTotal: (t) => `Total ${t} items`,
+          showTotal: (t) => i18n('queryDataset.total', t),
           onChange: (p, ps) => loadList(p, ps),
         }}
         search={false}
@@ -523,8 +523,8 @@ export default memo(() => {
             iconCode="icon-table"
             title={
               editingRecord?.id
-                ? 'Edit Saved Query View'
-                : 'Create Saved Query View'
+                ? i18n('savedQueryView.modal.editTitle')
+                : i18n('savedQueryView.modal.createTitle')
             }
           />
         }
@@ -548,41 +548,41 @@ export default memo(() => {
             name="name"
             rules={[{ required: true, message: i18n('common.form.error.required') }]}
           >
-            <Input placeholder="View name" />
+            <Input placeholder={i18n('savedQueryView.placeholder.viewName')} />
           </Form.Item>
           <Form.Item
             label={i18n('common.label.description')}
             name="description"
           >
-            <Input.TextArea placeholder="Description (optional)" rows={2} />
+            <Input.TextArea placeholder={i18n('savedQueryView.placeholder.description')} rows={2} />
           </Form.Item>
-          <Form.Item label="Dataset ID" name="datasetId">
-            <Input placeholder="Published dataset ID" />
+          <Form.Item label={i18n('savedQueryView.datasetId')} name="datasetId">
+            <Input placeholder={i18n('savedQueryView.placeholder.publishedDatasetId')} />
           </Form.Item>
-          <Form.Item label="Dataset Version" name="datasetVersion">
-            <Input placeholder="Dataset version" />
+          <Form.Item label={i18n('savedQueryView.datasetVersion')} name="datasetVersion">
+            <Input placeholder={i18n('savedQueryView.placeholder.datasetVersion')} />
           </Form.Item>
-          <Form.Item label="Row Fields" name="rowFields">
+          <Form.Item label={i18n('savedQueryView.rowFields')} name="rowFields">
             <Select
               mode="tags"
-              placeholder="Select row dimension field IDs"
+              placeholder={i18n('savedQueryView.placeholder.rowFields')}
               allowClear
             />
           </Form.Item>
-          <Form.Item label="Column Fields" name="columnFields">
+          <Form.Item label={i18n('savedQueryView.columnFields')} name="columnFields">
             <Select
               mode="tags"
-              placeholder="Select column dimension field IDs"
+              placeholder={i18n('savedQueryView.placeholder.columnFields')}
               allowClear
             />
           </Form.Item>
-          <Form.Item label="Page Size" name="pageSize">
-            <Input type="number" placeholder="100" />
+          <Form.Item label={i18n('savedQueryView.pageSize')} name="pageSize">
+            <Input type="number" placeholder={i18n('savedQueryView.placeholder.pageSize')} />
           </Form.Item>
 
           {/* Dimensions Editor */}
           <div style={{ marginTop: 16, marginBottom: 8 }}>
-            <strong>Dimensions</strong>
+            <strong>{i18n('savedQueryView.section.dimensions')}</strong>
             <Button
               type="dashed"
               size="small"
@@ -590,7 +590,7 @@ export default memo(() => {
               style={{ marginLeft: 8 }}
               onClick={addDimension}
             >
-              Add Dimension
+              {i18n('savedQueryView.button.addDimension')}
             </Button>
           </div>
           <Table
@@ -602,7 +602,7 @@ export default memo(() => {
             className={styles.fieldEditor}
             columns={[
               {
-                title: 'Field ID',
+                title: i18n('savedQueryView.table.fieldId'),
                 dataIndex: 'fieldId',
                 width: 140,
                 render: (_, __, index) => (
@@ -610,12 +610,12 @@ export default memo(() => {
                     size="small"
                     value={dimensions[index]?.fieldId}
                     onChange={(e) => updateDimension(index, { fieldId: e.target.value })}
-                    placeholder="field id"
+                    placeholder={i18n('savedQueryView.placeholder.fieldId')}
                   />
                 ),
               },
               {
-                title: 'Role',
+                title: i18n('savedQueryView.table.role'),
                 dataIndex: 'role',
                 width: 120,
                 render: (_, __, index) => (
@@ -629,7 +629,7 @@ export default memo(() => {
                 ),
               },
               {
-                title: 'Sort Direction',
+                title: i18n('savedQueryView.table.sortDirection'),
                 dataIndex: 'sortDirection',
                 width: 120,
                 render: (_, __, index) => (
@@ -661,7 +661,7 @@ export default memo(() => {
 
           {/* Measures Editor */}
           <div style={{ marginTop: 16, marginBottom: 8 }}>
-            <strong>Measures</strong>
+            <strong>{i18n('savedQueryView.section.measures')}</strong>
             <Button
               type="dashed"
               size="small"
@@ -669,7 +669,7 @@ export default memo(() => {
               style={{ marginLeft: 8 }}
               onClick={addMeasure}
             >
-              Add Measure
+              {i18n('savedQueryView.button.addMeasure')}
             </Button>
           </div>
           <Table
@@ -681,7 +681,7 @@ export default memo(() => {
             className={styles.fieldEditor}
             columns={[
               {
-                title: 'Field ID',
+                title: i18n('savedQueryView.table.fieldId'),
                 dataIndex: 'fieldId',
                 width: 140,
                 render: (_, __, index) => (
@@ -689,12 +689,12 @@ export default memo(() => {
                     size="small"
                     value={measures[index]?.fieldId}
                     onChange={(e) => updateMeasure(index, { fieldId: e.target.value })}
-                    placeholder="field id"
+                    placeholder={i18n('savedQueryView.placeholder.fieldId')}
                   />
                 ),
               },
               {
-                title: 'Aggregation',
+                title: i18n('savedQueryView.table.aggregation'),
                 dataIndex: 'aggregation',
                 width: 120,
                 render: (_, __, index) => (
@@ -733,7 +733,7 @@ export default memo(() => {
 
           {/* Filters Editor */}
           <div style={{ marginTop: 16, marginBottom: 8 }}>
-            <strong>Filters</strong>
+            <strong>{i18n('savedQueryView.section.filters')}</strong>
             <Button
               type="dashed"
               size="small"
@@ -741,7 +741,7 @@ export default memo(() => {
               style={{ marginLeft: 8 }}
               onClick={addFilter}
             >
-              Add Filter
+              {i18n('savedQueryView.button.addFilter')}
             </Button>
           </div>
           <Table
@@ -753,7 +753,7 @@ export default memo(() => {
             className={styles.fieldEditor}
             columns={[
               {
-                title: 'Field ID',
+                title: i18n('savedQueryView.table.fieldId'),
                 dataIndex: 'fieldId',
                 width: 120,
                 render: (_, __, index) => (
@@ -761,12 +761,12 @@ export default memo(() => {
                     size="small"
                     value={filters[index]?.fieldId}
                     onChange={(e) => updateFilter(index, { fieldId: e.target.value })}
-                    placeholder="field id"
+                    placeholder={i18n('savedQueryView.placeholder.fieldId')}
                   />
                 ),
               },
               {
-                title: 'Filter Type',
+                title: i18n('savedQueryView.table.filterType'),
                 dataIndex: 'filterType',
                 width: 110,
                 render: (_, __, index) => (
@@ -783,7 +783,7 @@ export default memo(() => {
                 ),
               },
               {
-                title: 'Operator',
+                title: i18n('savedQueryView.table.operator'),
                 dataIndex: 'operator',
                 width: 130,
                 render: (_, __, index) => {
@@ -800,7 +800,7 @@ export default memo(() => {
                 },
               },
               {
-                title: 'Value',
+                title: i18n('savedQueryView.table.value'),
                 dataIndex: 'value',
                 width: 120,
                 render: (_, __, index) => (
@@ -808,7 +808,7 @@ export default memo(() => {
                     size="small"
                     value={filters[index]?.value}
                     onChange={(e) => updateFilter(index, { value: e.target.value })}
-                    placeholder="value"
+                    placeholder={i18n('savedQueryView.placeholder.fieldId')}
                   />
                 ),
               },
@@ -831,7 +831,7 @@ export default memo(() => {
 
           {/* Sort Editor */}
           <div style={{ marginTop: 16, marginBottom: 8 }}>
-            <strong>Sort</strong>
+            <strong>{i18n('savedQueryView.section.sort')}</strong>
             <Button
               type="dashed"
               size="small"
@@ -839,7 +839,7 @@ export default memo(() => {
               style={{ marginLeft: 8 }}
               onClick={addSort}
             >
-              Add Sort
+              {i18n('savedQueryView.button.addSort')}
             </Button>
           </div>
           <Table
@@ -851,7 +851,7 @@ export default memo(() => {
             className={styles.fieldEditor}
             columns={[
               {
-                title: 'Field ID',
+                title: i18n('savedQueryView.table.fieldId'),
                 dataIndex: 'fieldId',
                 width: 140,
                 render: (_, __, index) => (
@@ -859,12 +859,12 @@ export default memo(() => {
                     size="small"
                     value={sorts[index]?.fieldId}
                     onChange={(e) => updateSort(index, { fieldId: e.target.value })}
-                    placeholder="field id"
+                    placeholder={i18n('savedQueryView.placeholder.fieldId')}
                   />
                 ),
               },
               {
-                title: 'Direction',
+                title: i18n('savedQueryView.table.direction'),
                 dataIndex: 'direction',
                 width: 120,
                 render: (_, __, index) => (
@@ -904,7 +904,7 @@ export default memo(() => {
         title={
           <ModalTitle
             iconCode="icon-eye"
-            title="Query Preview"
+            title={i18n('queryDataset.modal.previewTitle')}
           />
         }
         maskClosable={false}

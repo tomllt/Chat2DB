@@ -1,5 +1,6 @@
 import { Confetti, IconButton, IconfontSvg } from '@chat2db/ui';
 import { Tooltip, type InputRef } from 'antd';
+import { Database, FileSpreadsheet, Table2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import i18n from '@/i18n';
@@ -91,21 +92,21 @@ function MainPage() {
       },
       {
         key: 'query-dataset',
-        icon: 'icon-database',
+        icon: Database,
         isLoad: false,
         component: <QueryDatasetPage />,
         name: i18n('queryDataset.title'),
       },
       {
         key: 'saved-query-view',
-        icon: 'icon-table',
+        icon: Table2,
         isLoad: false,
         component: <SavedQueryViewPage />,
         name: i18n('savedQueryView.title'),
       },
       {
         key: 'excel-report-template',
-        icon: 'icon-file-excel',
+        icon: FileSpreadsheet,
         isLoad: false,
         component: <ExcelReportTemplatePage />,
         name: i18n('excelReportTemplate.title'),

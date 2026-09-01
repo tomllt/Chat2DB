@@ -5,7 +5,6 @@ import {
   Form,
   Input,
   Select,
-  Switch,
   Table,
   Tag,
   Popconfirm,
@@ -14,12 +13,13 @@ import {
 } from 'antd';
 import { Modal } from '@chat2db/ui';
 import ProTable, { ActionType, ProColumns } from '@ant-design/pro-table';
-import { Plus, Pencil, Copy, Eye, CheckCircle, XCircle, Trash2, Send } from 'lucide-react';
+import { Plus, Pencil, Copy, Eye, XCircle, Trash2, Send } from 'lucide-react';
 import { useStyles } from './style';
 import { useQueryDatasetStore } from '@/store/queryDataset/store';
 import useSelectDatabase from '@/hooks/useSelectDatabase';
-import sqlService from '@/service/sql';
-import { QueryDataset, QueryDatasetField, PreviewResult } from '@/typings/queryDataset';
+import sqlService, { type IColumn } from '@/service/sql';
+import { TableDataType } from '@/constants/table';
+import { QueryDataset, QueryDatasetField } from '@/typings/queryDataset';
 import i18n from '@/i18n';
 import ModalTitle from '@/components/Modal/ModalTitle';
 import feedback from '@/utils/feedback';
@@ -41,10 +41,10 @@ const AGGREGATION_OPTIONS = [
 ];
 
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
-  ENABLED: { color: 'green', text: 'Enabled' },
-  DISABLED: { color: 'red', text: 'Disabled' },
-  DRAFT: { color: 'orange', text: 'Draft' },
-  PUBLISHED: { color: 'blue', text: 'Published' },
+  ENABLED: { color: 'green', text: i18n('queryDataset.status.enabled') },
+  DISABLED: { color: 'red', text: i18n('queryDataset.status.disabled') },
+  DRAFT: { color: 'orange', text: i18n('queryDataset.status.draft') },
+  PUBLISHED: { color: 'blue', text: i18n('queryDataset.status.published') },
 };
 
 export default memo(() => {
@@ -52,10 +52,10 @@ export default memo(() => {
   const actionRef = useRef<ActionType>(null);
   const [form] = Form.useForm();
   const [fieldForm] = Form.useForm();
+  const tableName = Form.useWatch('tableName', form);
 
   const {
     list,
-    current,
     loading,
     preview,
     total,
@@ -69,9 +69,8 @@ export default memo(() => {
     publish,
     disable,
     copy,
-    getPreview,
-    setLoading,
-  } = useQueryDatasetStore((state) => ({
+     getPreview,
+   } = useQueryDatasetStore((state) => ({
     list: state.list,
     current: state.current,
     loading: state.loading,
@@ -87,12 +86,12 @@ export default memo(() => {
     publish: state.publish,
     disable: state.disable,
     copy: state.copy,
-    getPreview: state.getPreview,
-    setLoading: state.setLoading,
-  }));
+     getPreview: state.getPreview,
+   }));
 
   const { dataSourceList, databaseList, schemaList, selectDatabase, onChangeSelectDatabase } = useSelectDatabase({});
   const [tableList, setTableList] = useState<{ value: string; label: string }[]>([]);
+  const [columnList, setColumnList] = useState<IColumn[]>([]);
 
   useUpdateEffect(() => {
     form.setFieldsValue({
@@ -131,6 +130,38 @@ export default memo(() => {
     selectDatabase?.databaseName,
     selectDatabase?.schemaName,
     selectDatabase?.supportDatabase,
+  ]);
+
+  useEffect(() => {
+    const dataSourceId = selectDatabase?.dataSourceId;
+    const databaseName = selectDatabase?.supportDatabase === false
+      ? undefined
+      : selectDatabase?.databaseName;
+    const schemaName = selectDatabase?.schemaName;
+
+    setColumnList([]);
+    if (dataSourceId === undefined || (!databaseName && !schemaName) || !tableName) {
+      return;
+    }
+
+    let active = true;
+    sqlService
+      .getColumnList({ dataSourceId, databaseName: databaseName ?? '', schemaName, tableName })
+      .then((res) => {
+        if (active) {
+          setColumnList(res?.data || []);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    selectDatabase?.dataSourceId,
+    selectDatabase?.databaseName,
+    selectDatabase?.schemaName,
+    selectDatabase?.supportDatabase,
+    tableName,
   ]);
 
   // Modal state
@@ -208,7 +239,7 @@ export default memo(() => {
       loadList(1);
     } catch (e: any) {
       if (e?.errorFields) return; // form validation error
-      feedback.error(e?.message || 'Operation failed');
+      feedback.error(e?.message || i18n('queryDataset.message.operationFailed'));
     }
   }, [form, fields, editingRecord, updateQueryDataset, createQueryDataset, loadList]);
 
@@ -230,10 +261,10 @@ export default memo(() => {
     async (id: number) => {
       try {
         await publish(id);
-        feedback.success('Published successfully');
+        feedback.success(i18n('queryDataset.message.publishSuccess'));
         loadList();
       } catch (e: any) {
-        feedback.error(e?.message || 'Publish failed');
+        feedback.error(e?.message || i18n('queryDataset.message.publishFailed'));
       }
     },
     [publish, loadList],
@@ -244,10 +275,10 @@ export default memo(() => {
     async (id: number) => {
       try {
         await disable(id);
-        feedback.success('Disabled successfully');
+        feedback.success(i18n('queryDataset.message.disableSuccess'));
         loadList();
       } catch (e: any) {
-        feedback.error(e?.message || 'Disable failed');
+        feedback.error(e?.message || i18n('queryDataset.message.disableFailed'));
       }
     },
     [disable, loadList],
@@ -262,7 +293,7 @@ export default memo(() => {
         loadList(1);
         return newId;
       } catch (e: any) {
-        feedback.error(e?.message || 'Copy failed');
+        feedback.error(e?.message || i18n('queryDataset.message.copyFailed'));
       }
     },
     [copy, loadList],
@@ -276,7 +307,7 @@ export default memo(() => {
       try {
         await getPreview(id, 1, 20);
       } catch (e: any) {
-        feedback.error(e?.message || 'Preview failed');
+        feedback.error(e?.message || i18n('queryDataset.message.previewFailed'));
       }
     },
     [getPreview],
@@ -313,6 +344,8 @@ export default memo(() => {
     [],
   );
 
+  const DATA_TYPE_OPTIONS = Object.values(TableDataType).map((value) => ({ label: value, value }));
+
   // ---- ProTable columns ----
   const columns: ProColumns<QueryDataset>[] = useMemo(
     () => [
@@ -340,7 +373,7 @@ export default memo(() => {
         },
       },
       {
-        title: 'Version',
+        title: i18n('queryDataset.version'),
         dataIndex: 'version',
         key: 'version',
         width: 80,
@@ -381,7 +414,7 @@ export default memo(() => {
               icon={<Send size={14} />}
               onClick={() => handlePublish(record.id!)}
             >
-              Publish
+              {i18n('savedQueryView.action.publish')}
             </Button>
             <Button
               type="link"
@@ -389,7 +422,7 @@ export default memo(() => {
               icon={<XCircle size={14} />}
               onClick={() => handleDisable(record.id!)}
             >
-              Disable
+              {i18n('savedQueryView.action.disable')}
             </Button>
             <Button
               type="link"
@@ -397,7 +430,7 @@ export default memo(() => {
               icon={<Eye size={14} />}
               onClick={() => handlePreview(record.id!)}
             >
-              Preview
+              {i18n('savedQueryView.action.preview')}
             </Button>
             <Popconfirm
               title={i18n('common.tips.delete.confirm')}
@@ -427,7 +460,7 @@ export default memo(() => {
           current: pageNo,
           pageSize,
           showSizeChanger: true,
-          showTotal: (t) => `Total ${t} items`,
+          showTotal: (t) => i18n('queryDataset.total', t),
           onChange: (p, ps) => loadList(p, ps),
         }}
         search={false}
@@ -457,8 +490,8 @@ export default memo(() => {
             iconCode="icon-table"
             title={
               editingRecord?.id
-                ? 'Edit Query Dataset'
-                : 'Create Query Dataset'
+                ? i18n('queryDataset.modal.editTitle')
+                : i18n('queryDataset.modal.createTitle')
             }
           />
         }
@@ -486,7 +519,8 @@ export default memo(() => {
               dataSourceId: allValues.datasourceId,
               databaseName: allValues.databaseName,
               schemaName: allValues.schemaName,
-            });
+});
+
           }}
           style={{ maxHeight: 500, overflowY: 'auto' }}
         >
@@ -495,13 +529,13 @@ export default memo(() => {
             name="name"
             rules={[{ required: true, message: i18n('common.form.error.required') }]}
           >
-            <Input placeholder="Dataset name" />
+            <Input placeholder={i18n('queryDataset.placeholder.name')} />
           </Form.Item>
           <Form.Item
             label={i18n('common.label.description')}
             name="description"
           >
-            <Input.TextArea placeholder="Description (optional)" rows={2} />
+            <Input.TextArea placeholder={i18n('queryDataset.placeholder.description')} rows={2} />
           </Form.Item>
           <Form.Item label={i18n('common.dataSource.title')} name="datasourceId">
             <Select
@@ -540,9 +574,9 @@ export default memo(() => {
               placeholder={i18n('common.text.tableName')}
             />
           </Form.Item>
-          <Form.Item label="Source Object Type" name="sourceObjectType">
+          <Form.Item label={i18n('queryDataset.sourceObjectType')} name="sourceObjectType">
             <Select
-              placeholder="Select type"
+              placeholder={i18n('queryDataset.placeholder.selectType')}
               allowClear
               options={[
                 { label: 'TABLE', value: 'TABLE' },
@@ -553,7 +587,7 @@ export default memo(() => {
 
           {/* Field Editor */}
           <div style={{ marginTop: 16, marginBottom: 8 }}>
-            <strong>Fields</strong>
+            <strong>{i18n('queryDataset.fields.title')}</strong>
             <Button
               type="dashed"
               size="small"
@@ -561,7 +595,7 @@ export default memo(() => {
               style={{ marginLeft: 8 }}
               onClick={addField}
             >
-              Add Field
+              {i18n('queryDataset.fields.add')}
             </Button>
           </div>
           <Table
@@ -573,20 +607,32 @@ export default memo(() => {
             className={styles.fieldEditor}
             columns={[
               {
-                title: 'Source Column',
+                title: i18n('queryDataset.field.sourceColumn'),
                 dataIndex: 'sourceColumn',
                 width: 140,
                 render: (_, __, index) => (
-                  <Input
+                  <Select
                     size="small"
-                    value={fields[index]?.sourceColumn}
-                    onChange={(e) => updateField(index, { sourceColumn: e.target.value })}
-                    placeholder="column name"
+                    showSearch
+                    value={fields[index]?.sourceColumn || undefined}
+                    placeholder={i18n('queryDataset.placeholder.columnName')}
+                    options={columnList.map((column) => ({ label: column.name, value: column.name }))}
+                    onChange={(value) => {
+                      const column = columnList.find((item) => item.name === value);
+                      const patch: Partial<QueryDatasetField> = { sourceColumn: value };
+                      if (column) {
+                        patch.dataType = column.dataType || column.columnType;
+                        if (!fields[index]?.displayName) {
+                          patch.displayName = value;
+                        }
+                      }
+                      updateField(index, patch);
+                    }}
                   />
                 ),
               },
               {
-                title: 'Display Name',
+                title: i18n('queryDataset.field.displayName'),
                 dataIndex: 'displayName',
                 width: 120,
                 render: (_, __, index) => (
@@ -594,25 +640,27 @@ export default memo(() => {
                     size="small"
                     value={fields[index]?.displayName}
                     onChange={(e) => updateField(index, { displayName: e.target.value })}
-                    placeholder="display name"
+                    placeholder={i18n('queryDataset.placeholder.displayName')}
                   />
                 ),
               },
               {
-                title: 'Data Type',
+                title: i18n('queryDataset.field.dataType'),
                 dataIndex: 'dataType',
                 width: 100,
                 render: (_, __, index) => (
-                  <Input
+                  <Select
                     size="small"
-                    value={fields[index]?.dataType}
-                    onChange={(e) => updateField(index, { dataType: e.target.value })}
-                    placeholder="type"
+                    showSearch
+                    value={fields[index]?.dataType || undefined}
+                    placeholder={i18n('queryDataset.placeholder.dataType')}
+                    options={DATA_TYPE_OPTIONS}
+                    onChange={(value) => updateField(index, { dataType: value })}
                   />
                 ),
               },
               {
-                title: 'Role',
+                title: i18n('queryDataset.field.role'),
                 dataIndex: 'role',
                 width: 120,
                 render: (_, __, index) => (
@@ -625,6 +673,12 @@ export default memo(() => {
                       if (value === 'DIMENSION') {
                         updates.aggregation = '';
                       }
+                      const column = columnList.find((item) => item.name === fields[index]?.sourceColumn);
+                      if (column) {
+                        updates.dataType = column.dataType || column.columnType;
+                      } else if (!fields[index]?.dataType && fields[index]?.aggregation === 'COUNT') {
+                        updates.dataType = TableDataType.NUMERIC;
+                      }
                       updateField(index, updates);
                     }}
                     options={ROLE_OPTIONS}
@@ -632,7 +686,7 @@ export default memo(() => {
                 ),
               },
               {
-                title: 'Aggregation',
+                title: i18n('queryDataset.field.aggregation'),
                 dataIndex: 'aggregation',
                 width: 140,
                 render: (_, __, index) => {
@@ -643,14 +697,23 @@ export default memo(() => {
                       value={fields[index]?.aggregation || ''}
                       style={{ width: '100%' }}
                       disabled={!isMeasure}
-                      onChange={(value) => updateField(index, { aggregation: value })}
+                      onChange={(value) => {
+                        const updates: Partial<QueryDatasetField> = { aggregation: value };
+                        const column = columnList.find((item) => item.name === fields[index]?.sourceColumn);
+                        if (column) {
+                          updates.dataType = column.dataType || column.columnType;
+                        } else if (!fields[index]?.dataType && (value === 'COUNT' || value === 'COUNT_DISTINCT')) {
+                          updates.dataType = TableDataType.NUMERIC;
+                        }
+                        updateField(index, updates);
+                      }}
                       options={AGGREGATION_OPTIONS}
                     />
                   );
                 },
               },
               {
-                title: 'Visible',
+                title: i18n('queryDataset.field.visible'),
                 dataIndex: 'visible',
                 width: 70,
                 render: (_, __, index) => (
@@ -661,7 +724,7 @@ export default memo(() => {
                 ),
               },
               {
-                title: 'Filterable',
+                title: i18n('queryDataset.field.filterable'),
                 dataIndex: 'filterable',
                 width: 80,
                 render: (_, __, index) => (
@@ -672,7 +735,7 @@ export default memo(() => {
                 ),
               },
               {
-                title: 'Sortable',
+                title: i18n('queryDataset.field.sortable'),
                 dataIndex: 'sortable',
                 width: 80,
                 render: (_, __, index) => (
@@ -706,7 +769,7 @@ export default memo(() => {
         title={
           <ModalTitle
             iconCode="icon-eye"
-            title="Query Preview"
+            title={i18n('queryDataset.modal.previewTitle')}
           />
         }
         maskClosable={false}
