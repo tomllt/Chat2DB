@@ -117,8 +117,8 @@ export default memo<ExcelExportModalProps>(({
         />
       </div>
       {selectedTemplate && (
-<Typography.Text type="secondary">
-           {i18n('excelExport.linkedView')}: {selectedTemplate.queryViewId
+        <Typography.Text type="secondary">
+            {i18n('excelExport.linkedView')}: {selectedTemplate.queryViewId
              ? `#${selectedTemplate.queryViewId}`
              : '-'}
          </Typography.Text>

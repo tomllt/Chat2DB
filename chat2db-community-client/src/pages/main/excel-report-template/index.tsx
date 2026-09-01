@@ -614,7 +614,7 @@ export default memo(() => {
                       >
                         <Input
                           size="small"
-                          placeholder="e.g. A"
+                          placeholder={i18n('excelReportTemplate.placeholder.dataStartColumn')}
                           style={{ textTransform: 'uppercase' }}
                           onChange={(e) => updateBinding(index, { targetColumn: e.target.value })}
                         />
@@ -629,7 +629,7 @@ export default memo(() => {
                       <Form.Item name={[index, 'displayName']} style={{ marginBottom: 0 }}>
                         <Input
                           size="small"
-                          placeholder="header text"
+                          placeholder={i18n('excelReportTemplate.placeholder.sheetName')}
                           onChange={(e) => updateBinding(index, { displayName: e.target.value })}
                         />
                       </Form.Item>
@@ -643,7 +643,7 @@ export default memo(() => {
                       <Form.Item name={[index, 'numberFormat']} style={{ marginBottom: 0 }}>
                         <Input
                           size="small"
-                          placeholder="e.g. 0.00"
+                          placeholder={i18n('excelReportTemplate.placeholder.dataStartRow')}
                           onChange={(e) => updateBinding(index, { numberFormat: e.target.value })}
                         />
                       </Form.Item>
@@ -657,7 +657,7 @@ export default memo(() => {
                       <Form.Item name={[index, 'nullDisplay']} style={{ marginBottom: 0 }}>
                         <Input
                           size="small"
-                          placeholder="e.g. -"
+                          placeholder={i18n('excelReportTemplate.placeholder.freezeRows')}
                           onChange={(e) => updateBinding(index, { nullDisplay: e.target.value })}
                         />
                       </Form.Item>

@@ -17,7 +17,7 @@ const QueryPreview: React.FC<QueryPreviewProps> = ({ preview, loading, onPageCha
   // and would render an empty grid. Guard so a null/empty result is explicit
   // instead of a broken table.
   if (!preview.columns || preview.columns.length === 0) {
-    return <div style={{ padding: 16, color: '#999' }}>i18n('queryPreview.noData')</div>;
+    return <div style={{ padding: 16, color: '#999' }}>{i18n('queryPreview.noData')}</div>;
   }
 
   // Verify row keys line up with the column list (used by Table via dataIndex).

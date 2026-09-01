@@ -439,7 +439,7 @@ export default memo(() => {
               icon={<Send size={14} />}
               onClick={() => handlePublish(record.id!)}
             >
-              Publish
+              {i18n('savedQueryView.action.publish')}
             </Button>
             <Button
               type="link"
@@ -447,7 +447,7 @@ export default memo(() => {
               icon={<XCircle size={14} />}
               onClick={() => handleDisable(record.id!)}
             >
-              Disable
+              {i18n('savedQueryView.action.disable')}
             </Button>
             <Button
               type="link"
@@ -643,7 +643,7 @@ i18n('savedQueryView.action.preview')
                 ),
               },
               {
-                title: 'Action',
+                title: i18n('common.text.action'),
                 width: 60,
                 render: (_, __, index) => (
                   <Button
@@ -715,7 +715,7 @@ i18n('savedQueryView.action.preview')
                 ),
               },
               {
-                title: 'Action',
+                title: i18n('common.text.action'),
                 width: 60,
                 render: (_, __, index) => (
                   <Button
@@ -813,7 +813,7 @@ i18n('savedQueryView.action.preview')
                 ),
               },
               {
-                title: 'Action',
+                title: i18n('common.text.action'),
                 width: 60,
                 render: (_, __, index) => (
                   <Button
@@ -881,7 +881,7 @@ i18n('savedQueryView.action.preview')
                 ),
               },
               {
-                title: 'Action',
+                title: i18n('common.text.action'),
                 width: 60,
                 render: (_, __, index) => (
                   <Button
