@@ -168,9 +168,11 @@ export default memo(() => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<QueryDataset | null>(null);
   const [fields, setFields] = useState<QueryDatasetField[]>([]);
-  const skipInitialEditAutofillRef = useRef(false);
 
   useEffect(() => {
+    // Edit mode: never auto-fill — preserve saved fields.
+    if (editingRecord?.id) return;
+
     if (columnList.length === 0) {
       if (!tableName || !selectDatabase?.dataSourceId) {
         setFields([]);
@@ -178,14 +180,18 @@ export default memo(() => {
       return;
     }
 
-    if (skipInitialEditAutofillRef.current) {
-      skipInitialEditAutofillRef.current = false;
-      return;
-    }
-
     setFields(
       columnList.map((column) => {
-        const isMeasure = column.dataType === TableDataType.NUMERIC;
+        // Database-specific type strings complement the canonical TableDataType.NUMERIC enum.
+        const NUMERIC_DATA_TYPES = new Set([
+          'INT', 'INTEGER', 'BIGINT', 'SMALLINT', 'TINYINT', 'BYTEINT',
+          'NUMERIC', 'NUMBER', 'DECIMAL', 'DEC',
+          'FLOAT', 'DOUBLE', 'DOUBLE PRECISION', 'REAL',
+          'BIT', 'MONEY', 'SMALLMONEY',
+        ]);
+        const dataType = (column.dataType || '').toUpperCase().trim();
+        const isMeasure =
+          dataType === TableDataType.NUMERIC || NUMERIC_DATA_TYPES.has(dataType);
         return {
           fieldId: undefined,
           sourceColumn: column.name,
@@ -199,7 +205,7 @@ export default memo(() => {
         };
       }),
     );
-  }, [columnList, selectDatabase?.dataSourceId, tableName]);
+  }, [columnList, editingRecord?.id, selectDatabase?.dataSourceId, tableName]);
 
   // Preview modal state
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -220,7 +226,6 @@ export default memo(() => {
   // ---- Open create modal ----
   const handleOpenCreate = useCallback(() => {
     setEditingRecord(null);
-    skipInitialEditAutofillRef.current = false;
     setFields([]);
     form.resetFields();
     fieldForm.resetFields();
@@ -247,7 +252,6 @@ export default memo(() => {
         sourceObjectType: detail.sourceObjectType,
       });
       setFields(detail.fields || []);
-      skipInitialEditAutofillRef.current = (detail.fields || []).length > 0;
       setModalOpen(true);
     },
     [form, queryDatasetDetail],
@@ -546,15 +550,18 @@ export default memo(() => {
             if ('datasourceId' in changedValues) {
               form.setFieldValue('databaseName', undefined);
               form.setFieldValue('schemaName', undefined);
+              form.setFieldValue('tableName', undefined);
             } else if ('databaseName' in changedValues) {
               form.setFieldValue('schemaName', undefined);
+              form.setFieldValue('tableName', undefined);
+            } else if ('schemaName' in changedValues) {
+              form.setFieldValue('tableName', undefined);
             }
             onChangeSelectDatabase({
               dataSourceId: allValues.datasourceId,
               databaseName: allValues.databaseName,
               schemaName: allValues.schemaName,
-});
-
+            });
           }}
           style={{ maxHeight: 500, overflowY: 'auto' }}
         >
