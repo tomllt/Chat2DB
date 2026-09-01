@@ -169,6 +169,44 @@ export default memo(() => {
   const [editingRecord, setEditingRecord] = useState<QueryDataset | null>(null);
   const [fields, setFields] = useState<QueryDatasetField[]>([]);
 
+  useEffect(() => {
+    // Edit mode: never auto-fill — preserve saved fields.
+    if (editingRecord?.id) return;
+
+    if (columnList.length === 0) {
+      if (!tableName || !selectDatabase?.dataSourceId) {
+        setFields([]);
+      }
+      return;
+    }
+
+    setFields(
+      columnList.map((column) => {
+        // Database-specific type strings complement the canonical TableDataType.NUMERIC enum.
+        const NUMERIC_DATA_TYPES = new Set([
+          'INT', 'INTEGER', 'BIGINT', 'SMALLINT', 'TINYINT', 'BYTEINT',
+          'NUMERIC', 'NUMBER', 'DECIMAL', 'DEC',
+          'FLOAT', 'DOUBLE', 'DOUBLE PRECISION', 'REAL',
+          'BIT', 'MONEY', 'SMALLMONEY',
+        ]);
+        const dataType = (column.dataType || '').toUpperCase().trim();
+        const isMeasure =
+          dataType === TableDataType.NUMERIC || NUMERIC_DATA_TYPES.has(dataType);
+        return {
+          fieldId: undefined,
+          sourceColumn: column.name,
+          displayName: column.name,
+          dataType: column.dataType || column.columnType,
+          role: isMeasure ? 'MEASURE' : 'DIMENSION',
+          aggregation: isMeasure ? 'SUM' : '',
+          filterable: true,
+          sortable: true,
+          visible: true,
+        };
+      }),
+    );
+  }, [columnList, editingRecord?.id, selectDatabase?.dataSourceId, tableName]);
+
   // Preview modal state
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewingId, setPreviewingId] = useState<number | null>(null);
@@ -414,7 +452,7 @@ export default memo(() => {
               icon={<Send size={14} />}
               onClick={() => handlePublish(record.id!)}
             >
-              {i18n('queryDataset.action.publish')}
+              {i18n('savedQueryView.action.publish')}
             </Button>
             <Button
               type="link"
@@ -422,7 +460,7 @@ export default memo(() => {
               icon={<XCircle size={14} />}
               onClick={() => handleDisable(record.id!)}
             >
-              {i18n('queryDataset.action.disable')}
+              {i18n('savedQueryView.action.disable')}
             </Button>
             <Button
               type="link"
@@ -430,7 +468,7 @@ export default memo(() => {
               icon={<Eye size={14} />}
               onClick={() => handlePreview(record.id!)}
             >
-              {i18n('queryDataset.action.preview')}
+              {i18n('savedQueryView.action.preview')}
             </Button>
             <Popconfirm
               title={i18n('common.tips.delete.confirm')}
@@ -512,15 +550,18 @@ export default memo(() => {
             if ('datasourceId' in changedValues) {
               form.setFieldValue('databaseName', undefined);
               form.setFieldValue('schemaName', undefined);
+              form.setFieldValue('tableName', undefined);
             } else if ('databaseName' in changedValues) {
               form.setFieldValue('schemaName', undefined);
+              form.setFieldValue('tableName', undefined);
+            } else if ('schemaName' in changedValues) {
+              form.setFieldValue('tableName', undefined);
             }
             onChangeSelectDatabase({
               dataSourceId: allValues.datasourceId,
               databaseName: allValues.databaseName,
               schemaName: allValues.schemaName,
-});
-
+            });
           }}
           style={{ maxHeight: 500, overflowY: 'auto' }}
         >
@@ -613,6 +654,7 @@ export default memo(() => {
                 render: (_, __, index) => (
                   <Select
                     size="small"
+                    popupMatchSelectWidth={false}
                     showSearch
                     value={fields[index]?.sourceColumn || undefined}
                     placeholder={i18n('queryDataset.placeholder.columnName')}
@@ -651,6 +693,7 @@ export default memo(() => {
                 render: (_, __, index) => (
                   <Select
                     size="small"
+                    popupMatchSelectWidth={false}
                     showSearch
                     value={fields[index]?.dataType || undefined}
                     placeholder={i18n('queryDataset.placeholder.dataType')}
@@ -666,6 +709,7 @@ export default memo(() => {
                 render: (_, __, index) => (
                   <Select
                     size="small"
+                    popupMatchSelectWidth={false}
                     value={fields[index]?.role || 'DIMENSION'}
                     style={{ width: '100%' }}
                     onChange={(value) => {
@@ -694,6 +738,7 @@ export default memo(() => {
                   return (
                     <Select
                       size="small"
+                      popupMatchSelectWidth={false}
                       value={fields[index]?.aggregation || ''}
                       style={{ width: '100%' }}
                       disabled={!isMeasure}
@@ -746,7 +791,7 @@ export default memo(() => {
                 ),
               },
               {
-                title: i18n('common.text.action'),
+                title: 'Action',
                 width: 60,
                 render: (_, __, index) => (
                   <Button
