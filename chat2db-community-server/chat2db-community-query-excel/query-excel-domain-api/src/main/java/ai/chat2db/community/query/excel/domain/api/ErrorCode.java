@@ -53,6 +53,10 @@ public enum ErrorCode {
     EX_SENSITIVE_FIELD_NO_PERMISSION("EX_015", "No permission for sensitive field"),
     EX_FONT_FALLBACK("EX_016", "Font not found, using fallback"),
     EX_CHART_SOURCE_CONFLICT("EX_017", "Chart cannot have both LEGACY_SQL and SAVED_QUERY_VIEW sources"),
+    EX_REPORT_BUNDLE_NOT_FOUND("EX_018", "Report bundle not found"),
+    EX_REPORT_VERSION_INVALID("EX_019", "Report version is invalid"),
+    EX_REPORT_VERSION_DUPLICATE("EX_020", "Report version name already exists"),
+    EX_INVALID_FILTER_OVERRIDES("EX_021", "filterOverrides must be valid JSON"),
 
     // ── General permission ──────────────────────────────────────
     PERMISSION_DENIED("PERM_001", "Access denied");

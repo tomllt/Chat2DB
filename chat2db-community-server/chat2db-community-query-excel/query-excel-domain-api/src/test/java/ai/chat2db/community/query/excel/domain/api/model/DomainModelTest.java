@@ -192,6 +192,66 @@ class DomainModelTest {
     }
 
     @Test
+    void testReportBundleContract() {
+        ReportBundle obj = new ReportBundle();
+        obj.setId(1L);
+        obj.setWorkspaceId(10L);
+        obj.setName("sales-report");
+        obj.setDescription("Sales report bundle");
+        obj.setQueryViewId(100L);
+        ExcelColumnBinding binding = new ExcelColumnBinding();
+        binding.setQueryFieldId("f1");
+        obj.setBoundFields(Arrays.asList(binding));
+        ViewFilter filter = new ViewFilter();
+        filter.setFieldId("f1");
+        filter.setOperator("EQ");
+        obj.setPresetRowFilters(Arrays.asList(filter));
+        obj.setActiveVersionId(200L);
+        obj.setOwnerId(42L);
+
+        assertEquals(10L, obj.getWorkspaceId());
+        assertEquals("sales-report", obj.getName());
+        assertEquals(100L, obj.getQueryViewId());
+        assertEquals(Arrays.asList(binding), obj.getBoundFields());
+        assertEquals(Arrays.asList(filter), obj.getPresetRowFilters());
+        assertEquals(200L, obj.getActiveVersionId());
+        assertEquals(42L, obj.getOwnerId());
+        assertNotNull(obj.toString());
+    }
+
+    @Test
+    void testReportBundleVersionContract() {
+        ReportBundleVersion obj = new ReportBundleVersion();
+        obj.setId(200L);
+        obj.setWorkspaceId(10L);
+        obj.setBundleId(1L);
+        obj.setVersionName("January export");
+        obj.setVersionNo(2);
+        ExcelColumnBinding binding = new ExcelColumnBinding();
+        binding.setQueryFieldId("f1");
+        obj.setBoundFieldsSnapshot(Arrays.asList(binding));
+        ViewFilter preset = new ViewFilter();
+        preset.setFieldId("f1");
+        preset.setOperator("EQ");
+        obj.setPresetRowFiltersSnapshot(Arrays.asList(preset));
+        ViewFilter runtime = new ViewFilter();
+        runtime.setFieldId("f1");
+        runtime.setOperator("CONTAINS");
+        obj.setRowFilter(Arrays.asList(runtime));
+        obj.setSelectedRowKeys(Arrays.asList("row-1", "row-2"));
+
+        assertEquals(10L, obj.getWorkspaceId());
+        assertEquals(1L, obj.getBundleId());
+        assertEquals("January export", obj.getVersionName());
+        assertEquals(2, obj.getVersionNo());
+        assertEquals(Arrays.asList(binding), obj.getBoundFieldsSnapshot());
+        assertEquals(Arrays.asList(preset), obj.getPresetRowFiltersSnapshot());
+        assertEquals(Arrays.asList(runtime), obj.getRowFilter());
+        assertEquals(Arrays.asList("row-1", "row-2"), obj.getSelectedRowKeys());
+        assertNotNull(obj.toString());
+    }
+
+    @Test
     void testDatasetFilter() {
         DatasetFilter obj = new DatasetFilter();
         obj.setFieldId("f1");
