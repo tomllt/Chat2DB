@@ -207,6 +207,36 @@ or `prepare` alone.
 
 ## Constraints
 
+### Local toolchain (validated 2026-09-03)
+
+Required: Eclipse Temurin Java 17, Node.js 18.17.0 or later, Maven 3.8 or later,
+Yarn 1.22 or later with the checked-in `chat2db-community-client/yarn.lock`.
+
+If multiple Java SDKs are installed via sdkman, the default `java/current` may
+not point at 17. Backend compile and runtime MUST use Java 17 explicitly;
+otherwise `maven-compiler-plugin release 17` fails and the Spring Boot jar
+runs on the wrong JVM. The verified local paths on this host are:
+
+- Java 17: `/Users/tomllt/.sdkman/candidates/java/17.0.17-zulu`
+- Node 22 (nvm): `/Users/tomllt/.nvm/versions/node/v22.20.0`
+- Maven 3.8.6 (wrapper): `/Users/tomllt/.m2/wrapper/dists/apache-maven-3.8.6-bin/1adoh5t9ao8gjsuqbk1ad4j7dc/apache-maven-3.8.6`
+- Yarn 1.22.22 (bundled with Node 22)
+
+Always launch backend and frontend with the toolchain on PATH so the commands
+are reproducible:
+
+```bash
+export JAVA_HOME="/Users/tomllt/.sdkman/candidates/java/17.0.17-zulu"
+export PATH="$HOME/.nvm/versions/node/v22.20.0/bin:/Users/tomllt/.m2/wrapper/dists/apache-maven-3.8.6-bin/1adoh5t9ao8gjsuqbk1ad4j7dc/apache-maven-3.8.6/bin:$JAVA_HOME/bin:$PATH"
+node -v      # v22.20.0
+java -version # 17.0.17
+mvn -v       # 3.8.6
+```
+
+Node 25 (or other runtimes that removed `process.binding('http_parser')`) is
+incompatible with Umi 4 via `http-deceiver` and will abort `umi setup` /
+`yarn dev`. Stay on Node 18 / 20 / 22 for the frontend.
+
 ### Baseline commands
 
 Use Java 17, Maven 3.8 or later, Node.js 18 or later, and Yarn with the checked-in
