@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
         QueryDatasetController.class,
         SavedQueryViewController.class,
         ExcelReportTemplateController.class,
-        ExcelExportController.class
+        ExcelExportController.class,
+        ReportBundleController.class
 })
 public class QueryExcelExceptionHandler {
 

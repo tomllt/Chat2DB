@@ -6,7 +6,9 @@ import com.alibaba.fastjson2.JSON;
 import ai.chat2db.community.domain.api.model.PageResponse;
 import ai.chat2db.community.query.excel.domain.api.ErrorCode;
 import ai.chat2db.community.query.excel.domain.api.model.PreviewResult;
+import ai.chat2db.community.query.excel.domain.api.model.QueryExcelException;
 import ai.chat2db.community.query.excel.domain.api.model.SavedQueryView;
+
 import ai.chat2db.community.query.excel.domain.api.model.ViewFilter;
 import ai.chat2db.community.query.excel.domain.api.service.ISavedQueryViewService;
 import ai.chat2db.community.tools.annotation.NotCliRuntime;
@@ -107,6 +109,11 @@ public class SavedQueryViewController {
      */
     static List<ViewFilter> parseFilterOverrides(String json) {
         if (json == null || json.isBlank()) return null;
-        return JSON.parseArray(json, ViewFilter.class);
+        try {
+            return JSON.parseArray(json, ViewFilter.class);
+        } catch (RuntimeException ex) {
+            throw new QueryExcelException(ErrorCode.EX_INVALID_FILTER_OVERRIDES.getCode(),
+                    ErrorCode.EX_INVALID_FILTER_OVERRIDES.getMessage());
+        }
     }
 }
