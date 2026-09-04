@@ -24,7 +24,7 @@ import invite from './invite';
 import plugin from './plugin';
 import license from './license';
 import knowledgeManagement from './knowledgeManagement';
-
+import reportBundle from './reportBundle';
 export default {
   lang: LangType.ZH_CN,
   ...connection,
@@ -53,4 +53,5 @@ export default {
   ...plugin,
   ...license,
   ...knowledgeManagement,
+  ...reportBundle,
 };
