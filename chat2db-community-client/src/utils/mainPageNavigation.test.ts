@@ -48,7 +48,7 @@ assert.equal(
   undefined,
   'persisted entries that are not currently available are ignored',
 );
-for (const featurePage of ['query-dataset', 'saved-query-view', 'excel-report-template']) {
+for (const featurePage of ['query-dataset', 'saved-query-view', 'excel-report-template', 'report-bundle']) {
   assert.equal(
     readPersistedMainPageActiveTab(`{"state":{"mainPageActiveTab":"${featurePage}"}}`, [
       'stream',
@@ -57,6 +57,7 @@ for (const featurePage of ['query-dataset', 'saved-query-view', 'excel-report-te
       'query-dataset',
       'saved-query-view',
       'excel-report-template',
+    'report-bundle',
     ]),
     featurePage,
     `${featurePage} should be restorable when registered in Community navigation`,

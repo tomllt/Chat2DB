@@ -264,6 +264,15 @@ export default defineConfig({
               path: '/connections',
               redirect: '/workspace',
             },
+            {
+              path: '/report-bundle/editor',
+              component: '@/pages/main/report-bundle/editor',
+            },
+            {
+              path: '/report-bundle/data-view',
+              component: '@/pages/main/report-bundle/data-view',
+            },
+
             createMainRootRoute(buildProfile.isCommunity, MAIN_COMPONENT),
           ],
         },

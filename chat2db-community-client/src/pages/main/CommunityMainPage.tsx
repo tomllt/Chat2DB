@@ -1,6 +1,6 @@
 import { Confetti } from '@chat2db/ui';
 import { type InputRef } from 'antd';
-import { Database, FileSpreadsheet, Table2 } from 'lucide-react';
+import { Database, FileSpreadsheet, Files, Table2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import i18n from '@/i18n';
@@ -23,6 +23,7 @@ import Dashboard from './dashboard';
 import QueryDatasetPage from './query-dataset';
 import SavedQueryViewPage from './saved-query-view';
 import ExcelReportTemplatePage from './excel-report-template';
+import ReportBundlePage from './report-bundle';
 import { createCoreMainNavItems } from './navigationItems';
 import Workspace from './workspace';
 import Stream from '../stream';
@@ -77,6 +78,13 @@ function CommunityMainPage() {
         isLoad: false,
         component: <ExcelReportTemplatePage />,
         name: i18n('excelReportTemplate.title'),
+      },
+      {
+        key: 'report-bundle',
+        icon: Files,
+        isLoad: false,
+        component: <ReportBundlePage />,
+        name: i18n('reportBundle.title'),
       },
     ],
     [],
@@ -213,8 +221,11 @@ function CommunityMainPage() {
         page = initialLocation.page;
         pathName = initialLocation.pathName;
       } else {
-        page = resolveInitialMainPage(hashPage, mainPageActiveTab);
-        pathName = hashPage ? normalizedHashPath : '';
+        // Fallback to pathname when hash is empty (e.g. fresh navigation to
+        // /report-bundle/editor before setMainPageActiveTab writes the hash).
+        const routeFromPath = window.location.pathname.split('/')[1];
+        page = resolveInitialMainPage(hashPage || routeFromPath, mainPageActiveTab);
+        pathName = hashPage ? normalizedHashPath : (routeFromPath ? window.location.pathname : '');
       }
     } else {
       page = resolveInitialMainPage(window.location.pathname.split('/')[1], mainPageActiveTab);

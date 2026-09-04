@@ -17,7 +17,11 @@ assert.deepEqual(
 );
 assert.strictEqual(items[0].icon, MessageSquarePlus, 'Stream should use the semantic Lucide icon');
 assert.strictEqual(items[1].icon, Layers, 'Workspace should use the semantic Lucide icon');
-assert.strictEqual(items[2].icon, LayoutDashboard, 'Dashboard should use the semantic Lucide icon');
+assert.strictEqual(
+  items[2].icon,
+  LayoutDashboard,
+  'Dashboard should use the semantic Lucide icon',
+);
 assert.ok(
   items.every((item) => item.isLoad === false),
   'shared navigation items should remain lazy by default',
@@ -43,6 +47,7 @@ for (const feature of [
   ['query-dataset', 'QueryDatasetPage'],
   ['saved-query-view', 'SavedQueryViewPage'],
   ['excel-report-template', 'ExcelReportTemplatePage'],
+  ['report-bundle', 'ReportBundlePage'],
 ] as const) {
   assert.match(
     communityMainPage,
@@ -58,6 +63,30 @@ for (const retiredIconCode of ['icon-chat-alt-21', 'icon-gongxiang-', 'icon-char
     commercialMainPage,
     new RegExp(retiredIconCode),
     `commercial main navigation should not use ${retiredIconCode}`,
+  );
+}
+
+const reportBundlePage = readFileSync('src/pages/main/report-bundle/index.tsx', 'utf8');
+assert.match(
+  reportBundlePage,
+  /onClick=\{\(\) => open\(record, 'editor'\)\}/,
+  'Configure should navigate to the registered editor route instead of opening an unregistered path',
+);
+assert.match(
+  reportBundlePage,
+  /onClick=\{\(\) => openEdit\(record\)\}/,
+  'Edit should still surface the implemented in-place modal for the bundle row',
+);
+
+const umiConfig = readFileSync('.umirc.ts', 'utf8');
+for (const route of [
+  ['/report-bundle/editor', '@/pages/main/report-bundle/editor'],
+  ['/report-bundle/data-view', '@/pages/main/report-bundle/data-view'],
+] as const) {
+  assert.match(
+    umiConfig,
+    new RegExp(`path: '${route[0]}'[\\s\\S]*component: '${route[1]}'`),
+    `the ${route[0]} deep-link must remain registered to its implemented component`,
   );
 }
 

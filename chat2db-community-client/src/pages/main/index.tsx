@@ -1,6 +1,6 @@
 import { Confetti, IconButton, IconfontSvg } from '@chat2db/ui';
 import { Tooltip, type InputRef } from 'antd';
-import { Database, FileSpreadsheet, Table2 } from 'lucide-react';
+import { Database, FileSpreadsheet, Table2, Files } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import i18n from '@/i18n';
@@ -35,6 +35,7 @@ import Stream from '../stream';
 import QueryDatasetPage from './query-dataset';
 import SavedQueryViewPage from './saved-query-view';
 import ExcelReportTemplatePage from './excel-report-template';
+import ReportBundlePage from './report-bundle';
 // import Plugin from './plugin';
 
 import { useStyles } from './style';
@@ -110,6 +111,13 @@ function MainPage() {
         isLoad: false,
         component: <ExcelReportTemplatePage />,
         name: i18n('excelReportTemplate.title'),
+      },
+      {
+        key: 'report-bundle',
+        icon: Files,
+        isLoad: false,
+        component: <ReportBundlePage />,
+        name: i18n('reportBundle.title'),
       },
     ];
   }, []);
